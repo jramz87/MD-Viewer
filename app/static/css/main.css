@@ -1,0 +1,525 @@
+/* Enhanced main.css with Sage Green Palette to match viewer */
+
+/* Color Variables */
+:root {
+    --molecular-black: #000000;
+    --molecular-charcoal: #363946;
+    --molecular-gray: #696773;
+    --molecular-sage: #819595;
+    --molecular-sage-light: #B1B6A6;
+}
+
+/* Basic styling */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(135deg, var(--molecular-charcoal) 0%, var(--molecular-gray) 100%);
+    color: white;
+    min-height: 100vh;
+}
+
+/* Enhanced Navbar */
+.navbar {
+    background: var(--molecular-charcoal);
+    padding: 1rem;
+    box-shadow: 0 4px 20px rgba(54, 57, 70, 0.15);
+    border-bottom: 2px solid var(--molecular-sage);
+}
+
+.nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.nav-brand h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: white;
+    font-weight: 600;
+}
+
+.nav-links {
+    display: flex;
+    gap: 1rem;
+}
+
+.nav-link {
+    color: var(--molecular-sage-light);
+    text-decoration: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    border: 2px solid transparent;
+}
+
+.nav-link:hover {
+    background: var(--molecular-sage);
+    color: white;
+    border-color: var(--molecular-sage);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.nav-link.active {
+    background: var(--molecular-sage);
+    color: white;
+    border-color: var(--molecular-sage);
+}
+
+.main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.hero-section {
+    text-align: center;
+    padding: 4rem 0;
+}
+
+.hero-section h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: white;
+    font-weight: 600;
+}
+
+.hero-section p {
+    font-size: 1.1rem;
+    color: var(--molecular-sage-light);
+    margin-bottom: 2rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Enhanced Upload Area */
+.upload-area {
+    border: 3px dashed var(--molecular-sage);
+    border-radius: 12px;
+    padding: 3rem;
+    margin: 2rem 0;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+}
+
+.upload-area:hover {
+    border-color: var(--molecular-sage-light);
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.upload-area.dragover {
+    border-color: var(--molecular-sage-light);
+    background: rgba(129, 149, 149, 0.2);
+    transform: scale(1.02);
+}
+
+/* Enhanced Buttons */
+.upload-btn {
+    background: var(--molecular-sage);
+    color: white;
+    border: 2px solid var(--molecular-sage);
+    padding: 0.8rem 2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-top: 1rem;
+    transition: all 0.3s ease;
+    display: inline-block;
+    text-decoration: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.upload-btn:hover {
+    background: var(--molecular-gray);
+    border-color: var(--molecular-gray);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.upload-btn-disabled {
+    background: var(--molecular-gray);
+    color: var(--molecular-sage-light);
+    cursor: not-allowed;
+    opacity: 0.6;
+    border-color: var(--molecular-gray);
+}
+
+.upload-btn-disabled:hover {
+    transform: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background: var(--molecular-gray);
+    border-color: var(--molecular-gray);
+}
+
+.select-more-btn {
+    background: var(--molecular-sage-light);
+    color: var(--molecular-charcoal);
+    border: 2px solid var(--molecular-sage-light);
+    margin-left: 1rem;
+}
+
+.select-more-btn:hover {
+    background: var(--molecular-sage);
+    color: white;
+    border-color: var(--molecular-sage);
+}
+
+/* Enhanced Loading Overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(54, 57, 70, 0.95);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    backdrop-filter: blur(4px);
+}
+
+.loading-content {
+    text-align: center;
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2rem;
+    border-radius: 12px;
+    border: 1px solid var(--molecular-sage);
+}
+
+.loading-content h3 {
+    margin-bottom: 1rem;
+    color: white;
+}
+
+.loading-content p {
+    color: var(--molecular-sage-light);
+}
+
+/* Enhanced Spinner */
+.spinner {
+    border: 4px solid rgba(129, 149, 149, 0.3);
+    border-top: 4px solid var(--molecular-sage);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+    filter: drop-shadow(0 0 10px rgba(129, 149, 149, 0.5));
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Enhanced Error Toast */
+.error-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #dc3545;
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    z-index: 10000;
+    max-width: 400px;
+    box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
+    border: 1px solid rgba(220, 53, 69, 0.5);
+}
+
+.toast-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-left: 1rem;
+    padding: 0;
+}
+
+/* Enhanced File Upload Styling */
+.file-status-list { 
+    margin: 20px 0; 
+}
+
+.file-item { 
+    background: rgba(255,255,255,0.1); 
+    margin: 10px 0; 
+    padding: 15px; 
+    border-radius: 12px; 
+    border-left: 4px solid transparent;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.file-item:hover {
+    background: rgba(255,255,255,0.15);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.file-valid { 
+    border-left-color: var(--molecular-sage); 
+    background: rgba(129, 149, 149, 0.15);
+}
+
+.file-invalid { 
+    border-left-color: #dc3545; 
+    background: rgba(220, 53, 69, 0.15);
+}
+
+.file-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 8px; 
+}
+
+.file-type { 
+    background: var(--molecular-sage);
+    color: white;
+    padding: 4px 12px; 
+    border-radius: 6px; 
+    font-size: 0.8em; 
+    font-weight: 600;
+}
+
+.file-details { 
+    font-size: 0.9em; 
+    color: var(--molecular-sage-light);
+}
+
+.success { 
+    color: var(--molecular-sage); 
+    margin: 2px 0; 
+    font-weight: 500;
+}
+
+.error { 
+    color: #dc3545; 
+    margin: 2px 0; 
+    font-weight: 500;
+}
+
+.warning { 
+    color: #ffc107; 
+    margin: 2px 0; 
+    font-weight: 500;
+}
+
+.upload-summary { 
+    margin-top: 20px; 
+    padding-top: 20px; 
+    border-top: 2px solid var(--molecular-sage);
+    text-align: center; 
+}
+
+.summary-stats { 
+    margin-bottom: 15px; 
+}
+
+.stat-valid, .stat-invalid { 
+    margin: 0 10px; 
+    padding: 8px 16px; 
+    border-radius: 8px; 
+    font-weight: 600;
+    display: inline-block;
+}
+
+.stat-valid { 
+    background: rgba(129, 149, 149, 0.3);
+    color: var(--molecular-sage-light);
+    border: 1px solid var(--molecular-sage);
+}
+
+.stat-invalid { 
+    background: rgba(220, 53, 69, 0.3);
+    color: #ffcccb;
+    border: 1px solid #dc3545;
+}
+
+.uploaded-file { 
+    background: rgba(129, 149, 149, 0.2); 
+    padding: 12px; 
+    margin: 8px 0; 
+    border-radius: 8px; 
+    border-left: 4px solid var(--molecular-sage);
+}
+
+.processing-status { 
+    text-align: center; 
+    margin: 20px 0; 
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid var(--molecular-sage);
+}
+
+/* Enhanced File Status Grid */
+.file-status-grid {
+    display: grid;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.file-status-item {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 18px;
+    border-left: 4px solid transparent;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.file-status-item:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.file-uploaded {
+    border-left-color: var(--molecular-sage);
+    background: rgba(129, 149, 149, 0.15);
+}
+
+.file-missing {
+    border-left-color: #dc3545;
+    background: rgba(220, 53, 69, 0.15);
+}
+
+.file-status-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.status-icon {
+    font-size: 1.3em;
+    width: 28px;
+}
+
+.file-name {
+    font-weight: bold;
+    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+    color: white;
+}
+
+.file-requirements {
+    text-align: center;
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid var(--molecular-sage-light);
+}
+
+.file-required {
+    font-size: 0.8em;
+    background: var(--molecular-sage);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    margin-left: auto;
+    font-weight: 600;
+}
+
+.file-description {
+    color: var(--molecular-sage-light);
+    font-size: 0.9em;
+    margin-left: 40px;
+    line-height: 1.4;
+}
+
+.uploaded-count {
+    font-weight: bold;
+    color: white;
+}
+
+.required-ok {
+    color: var(--molecular-sage);
+    font-weight: 600;
+}
+
+.required-missing {
+    color: #ffc107;
+    font-weight: 600;
+}
+
+/* Additional enhancements */
+.btn, button {
+    font-family: inherit;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .main-content {
+        padding: 1rem;
+    }
+    
+    .hero-section {
+        padding: 2rem 0;
+    }
+    
+    .hero-section h1 {
+        font-size: 2rem;
+    }
+    
+    .upload-area {
+        padding: 2rem;
+    }
+    
+    .nav-container {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .file-status-grid {
+        gap: 10px;
+    }
+    
+    .file-status-item {
+        padding: 12px;
+    }
+    
+    .upload-btn, .select-more-btn {
+        display: block;
+        margin: 0.5rem auto;
+        width: 100%;
+        max-width: 300px;
+    }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

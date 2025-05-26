@@ -1,0 +1,199 @@
+
+<!DOCTYPE html>
+<html lang="en">
+{% extends "base.html" %}
+
+{% block title %}Home - MD Viewer{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="hero-content">
+        <h1>Molecular Dynamics and Excited-State Evolution Viewer</h1>
+        <p class="hero-subtitle">
+            Molecular Dynamics Visualization and Excitation Analysis GUI
+        </p>
+        <div class="hero-features">
+            <div class="feature">
+                <h3>3D Visualization</h3>
+                <p>Real-time molecular structure rendering with advanced controls</p>
+                <p>Server-side processing for large datasets and complex calculations</p>
+            </div>
+            <div class="feature">
+                <h3>Data Analysis</h3>
+                <p>Implements spectroscopic and structural analysis tools</p>
+                <p>(In Progress) Statistical Mechanics Analysis</p>
+                <p>(In Progress) Transient Absorption Simulation</p>
+            </div>
+            <div class="feature">
+                <h3>Requirements</h3>
+                <p>Molecular Dynamics trajectory calculated from TeraChem [coors.xyz]</p>
+                <p>
+                    (Optional) Excited state information extracted from TDDFT calculations on snapshots
+                    currently supports two excited states [s1.dat and s2.dat, failed calculations listed in fail.dat]
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="upload-section">
+    <div class="container">
+        <h2>Get Started</h2>
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon"></div>
+            <h3>Upload Your Data Files</h3>
+            <p>Drop your files here or click to select</p>
+            <div class="file-requirements">
+                <h4>Required Files:</h4>
+                <ul>
+                    <li><strong>coors.xyz</strong> - XYZ trajectory file</li>
+                    <li><strong>s1.dat</strong> - S1 excitation data (optional)</li>
+                    <li><strong>s2.dat</strong> - S2 excitation data (optional)</li>
+                    <li><strong>fail.dat</strong> - Failed calculations (optional)</li>
+                </ul>
+            </div>
+            <input type="file" id="fileInput" multiple accept=".xyz,.dat,.txt" style="display: none;">
+            <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                Choose Files
+            </button>
+        </div>
+        
+        <div class="upload-progress" id="uploadProgress" style="display: none;">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <p class="progress-text" id="progressText">Uploading...</p>
+        </div>
+    </div>
+</div>
+
+<footer class="footer">
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>MD Viewer</h4>
+                <p>Visualization tool for molecular dynamics and excited-states evolution</p>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2025 MD Viewer</p>
+        </div>
+    </div>
+</footer>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+<script>
+    // Initialize upload functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeUpload();
+        initializeExamples();
+        initializeFooterLinks();
+    });
+    
+    // Example data loading functions
+    function loadExampleData(type) {
+        showLoading('Loading example data...');
+        
+        fetch(`/api/examples/${type}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Redirect to viewer with loaded data
+                window.location.href = `/viewer?session=${data.session_id}`;
+            } else {
+                showError(data.error || 'Failed to load example data');
+            }
+        })
+        .catch(error => {
+            console.error('Example loading error:', error);
+            showError('Failed to load example data');
+        })
+        .finally(() => {
+            hideLoading();
+        });
+    }
+    
+    function initializeExamples() {
+        // Initialize example loading functionality
+        console.log('Examples initialized');
+    }
+    
+    function initializeFooterLinks() {
+        // Initialize footer link handlers
+        window.showDocumentation = () => {
+            window.open('/docs', '_blank');
+        };
+        
+        window.showTutorial = () => {
+            window.open('/tutorial', '_blank');
+        };
+        
+        window.showExamples = () => {
+            document.querySelector('.examples-section').scrollIntoView({ behavior: 'smooth' });
+        };
+        
+        window.showSupport = () => {
+            alert('For support, please contact: support@dmabn-viewer.com');
+        };
+        
+        window.showPrivacy = () => {
+            alert('Privacy policy: We do not store your data permanently. All uploads are session-based and automatically deleted.');
+        };
+        
+        window.showTerms = () => {
+            alert('Terms: This tool is provided for research purposes. Please cite appropriately in publications.');
+        };
+        
+        window.showContact = () => {
+            alert('Contact: dmabn-viewer@research.edu');
+        };
+    }
+    
+    // Loading overlay functions
+    function showLoading(message = 'Processing...') {
+        const overlay = document.getElementById('loading-overlay');
+        const messageEl = document.getElementById('loading-message');
+        if (overlay && messageEl) {
+            messageEl.textContent = message;
+            overlay.style.display = 'flex';
+        }
+    }
+    
+    function hideLoading() {
+        const overlay = document.getElementById('loading-overlay');
+        if (overlay) {
+            overlay.style.display = 'none';
+        }
+    }
+    
+    function showError(message) {
+        const toast = document.getElementById('error-toast');
+        const messageEl = toast.querySelector('.toast-message');
+        const closeBtn = toast.querySelector('.toast-close');
+        
+        if (toast && messageEl) {
+            messageEl.textContent = message;
+            toast.style.display = 'block';
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 5000);
+            
+            // Close button handler
+            closeBtn.onclick = () => {
+                toast.style.display = 'none';
+            };
+        }
+    }
+</script>
+{% endblock %}
+</html>

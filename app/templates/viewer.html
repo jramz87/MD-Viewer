@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}3D Molecular Viewer {% endblock %}</title>
+    
+    <!-- Session and metadata -->
+    <meta name="session-id" content="{{ session_id }}">
+    
+    <!-- External libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/viewer.css') }}">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <div class="viewer-layout">
+        <!-- Header -->
+        <div class="viewer-header">
+            <h1>Molecular Dynamics Viewer</h1>
+            <div class="session-info">
+                <span>Session: {{ session_id }}</span>
+                <button class="btn btn-secondary" onclick="window.location.href='/'">
+                    Back to Upload
+                </button>
+            </div>
+        </div>
+        
+        <!-- Main Viewer Area -->
+        <div class="viewer-main">
+            <!-- 3D Viewport -->
+            <div class="viewer-viewport">
+                <div id="viewer-container"></div>
+                <div id="viewer-error" class="error-overlay" style="display: none;"></div>
+                
+                <!-- Loading overlay -->
+                <div id="loading-overlay" class="loading-overlay">
+                    <div class="loading-content">
+                        <div class="spinner"></div>
+                        <h3>Loading Molecular Data...</h3>
+                        <p>Please wait while we prepare your simulation</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Control Panel -->
+            <div class="control-panel">
+                <div class="panel-section">
+                    <h3>Animation Controls</h3>
+                    <div class="controls-group">
+                        <button id="play-btn" class="btn btn-primary">▶️ Play</button>
+                        <button id="prev-btn" class="btn btn-secondary">⏮️ Prev</button>
+                        <button id="next-btn" class="btn btn-secondary">⏭️ Next</button>
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label for="frame-slider">Frame:</label>
+                        <input type="range" id="frame-slider" min="0" max="100" value="0" class="slider">
+                        <div class="slider-info">
+                            <span id="current-frame">1</span> / <span id="total-frames">100</span>
+                        </div>
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label for="speed-slider">Speed:</label>
+                        <input type="range" id="speed-slider" min="0.1" max="5" step="0.1" value="1" class="slider">
+                        <div class="slider-info">
+                            <span id="speed-display">1x</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <h3>Frame Information</h3>
+                    <div id="frame-info" class="info-display">
+                        <div class="frame-details">
+                            <span><strong>Frame:</strong> 1/100</span>
+                            <span><strong>Time:</strong> 0.0 fs (0.000 ps)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <h3>Excitation Data</h3>
+                    <div id="excitation-info" class="info-display">
+                        <div class="no-excitation">Loading excitation data...</div>
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <h3>Visualization Options</h3>
+                    <div class="options-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="show-bonds" checked>
+                            <span>Show Bonds</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="show-labels">
+                            <span>Show Atom Labels</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="show-trajectory">
+                            <span>Show Trajectory Trail</span>
+                        </label>
+                    </div>
+                    
+                    <div class="color-options">
+                        <label for="background-color">Background:</label>
+                        <input type="color" id="background-color" value="#f0f0f0">
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <h3>📈 Analysis Tools</h3>
+                    <div class="analysis-buttons">
+                        <button class="btn btn-secondary" onclick="showSpectrumChart()">
+                            📊 Absorption Spectrum
+                        </button>
+                        <button class="btn btn-secondary" onclick="showEnergyEvolution()">
+                            📈 Global Oscillator Strength
+                        </button>
+                        <button class="btn btn-secondary" onclick="exportFrame()">
+                            💾 Export Frame (In Progress)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-info">
+                <span id="molecule-info">Loading molecule data...</span>
+            </div>
+            <div class="status-actions">
+                <button class="btn btn-small" onclick="resetView()"> Reset View</button>
+                <button class="btn btn-small" onclick="toggleFullscreen()">Fullscreen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Chart Windows -->
+    <div id="spectrum-floating" class="floating-chart spectrum-chart">
+        <div class="floating-chart-header">
+            <h3>Calculated Absorption Spectrum</h3>
+            <div class="floating-chart-controls">
+                <button class="floating-chart-btn" onclick="closeFloatingChart('spectrum-floating')">&times;</button>
+            </div>
+        </div>
+        <div class="floating-chart-body">
+            <canvas id="spectrum-chart"></canvas>
+        </div>
+    </div>
+
+    <div id="energy-floating" class="floating-chart energy-chart">
+        <div class="floating-chart-header">
+            <h3>Global Oscillator Strengths</h3>
+            <div class="floating-chart-controls">
+                <button class="floating-chart-btn" onclick="closeFloatingChart('energy-floating')">&times;</button>
+            </div>
+        </div>
+        <div class="floating-chart-body">
+            <canvas id="energy-chart"></canvas>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/viewer.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+    
+    <script>
+        // Global session ID for JavaScript
+        window.sessionId = "{{ session_id }}";
+        
+        // Additional viewer functions
+        function resetView() {
+            if (molecularViewer && molecularViewer.camera) {
+                molecularViewer.camera.position.set(10, 10, 10);
+                molecularViewer.camera.lookAt(0, 0, 0);
+            }
+        }
+        
+        function toggleFullscreen() {
+            const viewerContainer = document.getElementById('viewer-container');
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                viewerContainer.requestFullscreen();
+            }
+        }
+        
+        function showSpectrumChart() {
+            const floatingChart = document.getElementById('spectrum-floating');
+            floatingChart.style.display = 'block';
+            // Implementation in charts.js
+            setTimeout(() => createSpectrumChart(), 100); // Small delay for DOM update
+        }
+        
+        function showEnergyEvolution() {
+            const floatingChart = document.getElementById('energy-floating');
+            floatingChart.style.display = 'block';
+            // Implementation in charts.js
+            setTimeout(() => createEnergyChart(), 100); // Small delay for DOM update
+        }
+        
+        function closeFloatingChart(chartId) {
+            document.getElementById(chartId).style.display = 'none';
+        }
+        
+        // Make floating charts draggable
+        function makeDraggable() {
+            const charts = document.querySelectorAll('.floating-chart');
+            
+            charts.forEach(chart => {
+                const header = chart.querySelector('.floating-chart-header');
+                let isDragging = false;
+                let currentX, currentY, initialX, initialY;
+                
+                header.addEventListener('mousedown', function(e) {
+                    if (e.target.tagName === 'BUTTON') return; // Don't drag when clicking buttons
+                    
+                    isDragging = true;
+                    initialX = e.clientX - chart.offsetLeft;
+                    initialY = e.clientY - chart.offsetTop;
+                    
+                    document.addEventListener('mousemove', dragChart);
+                    document.addEventListener('mouseup', stopDragging);
+                });
+                
+                function dragChart(e) {
+                    if (!isDragging) return;
+                    
+                    e.preventDefault();
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+                    
+                    // Keep within viewport bounds
+                    const maxX = window.innerWidth - chart.offsetWidth;
+                    const maxY = window.innerHeight - chart.offsetHeight;
+                    
+                    currentX = Math.max(0, Math.min(currentX, maxX));
+                    currentY = Math.max(0, Math.min(currentY, maxY));
+                    
+                    chart.style.left = currentX + 'px';
+                    chart.style.top = currentY + 'px';
+                    chart.style.right = 'auto'; // Override CSS right positioning
+                }
+                
+                function stopDragging() {
+                    isDragging = false;
+                    document.removeEventListener('mousemove', dragChart);
+                    document.removeEventListener('mouseup', stopDragging);
+                }
+            });
+        }
+        
+        function closeModal(modalId) {
+            // Legacy function - now redirects to floating charts
+            if (modalId === 'spectrum-modal') {
+                closeFloatingChart('spectrum-floating');
+            } else if (modalId === 'energy-modal') {
+                closeFloatingChart('energy-floating');
+            }
+        }
+        
+        function exportFrame() {
+            if (molecularViewer && molecularViewer.renderer) {
+                const canvas = molecularViewer.renderer.domElement;
+                const link = document.createElement('a');
+                link.download = `dmabn_frame_${molecularViewer.currentFrame}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            }
+        }
+        
+        // Visualization option handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            const showBondsCheckbox = document.getElementById('show-bonds');
+            const showLabelsCheckbox = document.getElementById('show-labels');
+            const backgroundColorPicker = document.getElementById('background-color');
+            
+            if (showBondsCheckbox) {
+                showBondsCheckbox.addEventListener('change', function() {
+                    if (molecularViewer) {
+                        molecularViewer.toggleBonds(this.checked);
+                    }
+                });
+            }
+            
+            if (showLabelsCheckbox) {
+                showLabelsCheckbox.addEventListener('change', function() {
+                    if (molecularViewer) {
+                        molecularViewer.toggleLabels(this.checked);
+                    }
+                });
+            }
+            
+            if (backgroundColorPicker) {
+                backgroundColorPicker.addEventListener('change', function() {
+                    if (molecularViewer && molecularViewer.scene) {
+                        molecularViewer.scene.background = new THREE.Color(this.value);
+                    }
+                });
+            }
+            
+            // Hide loading overlay once everything is initialized
+            setTimeout(function() {
+                const loadingOverlay = document.getElementById('loading-overlay');
+                if (loadingOverlay) {
+                    loadingOverlay.style.display = 'none';
+                }
+            }, 2000);
+            
+            // Initialize draggable functionality for floating charts
+            makeDraggable();
+        });
+        
+        // Modal click outside to close
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(event) {
+            if (!molecularViewer) return;
+            
+            switch(event.key) {
+                case ' ': // Spacebar - play/pause
+                    event.preventDefault();
+                    if (molecularViewer.isPlaying) {
+                        molecularViewer.pause();
+                    } else {
+                        molecularViewer.play();
+                    }
+                    break;
+                case 'ArrowLeft': // Previous frame
+                    event.preventDefault();
+                    molecularViewer.previousFrame();
+                    break;
+                case 'ArrowRight': // Next frame
+                    event.preventDefault();
+                    molecularViewer.nextFrame();
+                    break;
+                case 'r': // Reset view
+                case 'R':
+                    event.preventDefault();
+                    resetView();
+                    break;
+                case 'f': // Fullscreen
+                case 'F':
+                    event.preventDefault();
+                    toggleFullscreen();
+                    break;
+                case 'Escape': // Close floating charts
+                    document.querySelectorAll('.floating-chart').forEach(chart => {
+                        chart.style.display = 'none';
+                    });
+                    break;
+            }
+        });
+        
+        // Update frame info when frame changes
+        document.addEventListener('frameChanged', function(event) {
+            const currentFrameSpan = document.getElementById('current-frame');
+            if (currentFrameSpan && event.detail) {
+                currentFrameSpan.textContent = event.detail.frame + 1;
+            }
+        });
+        
+        // Performance monitoring
+        let frameCount = 0;
+        let lastTime = performance.now();
+        
+        function updateFPS() {
+            frameCount++;
+            const currentTime = performance.now();
+            
+            if (currentTime - lastTime >= 1000) { // Update every second
+                const fps = Math.round(frameCount * 1000 / (currentTime - lastTime));
+                const moleculeInfo = document.getElementById('molecule-info');
+                
+                if (moleculeInfo && molecularViewer && molecularViewer.trajectoryData) {
+                    moleculeInfo.textContent = `${molecularViewer.trajectoryData.length} frames loaded | ${fps} FPS`;
+                }
+                
+                frameCount = 0;
+                lastTime = currentTime;
+            }
+            
+            requestAnimationFrame(updateFPS);
+        }
+        
+        // Start FPS monitoring
+        requestAnimationFrame(updateFPS);
+    </script>
+    
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

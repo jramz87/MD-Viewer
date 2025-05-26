@@ -1,0 +1,196 @@
+# 🧬 DMABN MD Viewer - Flask Setup Instructions
+
+## 🚀 Quick Setup
+
+### 1. **Create Project Structure**
+```bash
+mkdir dmabn-md-viewer
+cd dmabn-md-viewer
+
+# Create directory structure
+mkdir -p app/{models,routes,static/{css,js,lib,assets},templates/components,utils}
+mkdir -p data/{uploads,processed,examples}
+mkdir -p tests
+mkdir -p deployment/{docker,nginx,systemd}
+```
+
+### 2. **Create Virtual Environment**
+```bash
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment
+# On Linux/Mac:
+source venv/bin/activate
+# On Windows:
+venv\Scripts\activate
+```
+
+### 3. **Install Dependencies**
+```bash
+# Install Python packages
+pip install -r requirements.txt
+
+# Verify installation
+pip list
+```
+
+### 4. **Environment Configuration**
+```bash
+# Copy environment template
+cp .env.example .env
+
+# Edit .env file with your settings
+nano .env  # or use your preferred editor
+```
+
+### 5. **Initialize Application Structure**
+
+Create these files in the `app/` directory:
+
+**app/__init__.py:**
+```python
+from flask import Flask
+from config import Config
+
+def create_app():
+    app = Flask(__name__)
+    app.config.from_object(Config)
+    return app
+```
+
+**app/models/__init__.py:**
+```python
+# Models package initialization
+```
+
+**app/routes/__init__.py:**
+```python
+# Routes package initialization
+```
+
+**app/utils/__init__.py:**
+```python
+# Utils package initialization
+```
+
+### 6. **Create Required Utility Files**
+
+You'll need to create these additional files:
+
+- `app/utils/file_parser.py` - File parsing utilities
+- `app/utils/validators.py` - Input validation
+- `app/models/analysis.py` - Data analysis functions
+- `app/static/css/main.css` - Main stylesheet
+- `app/static/js/main.js` - Main JavaScript
+- `app/static/js/upload.js` - Upload functionality
+
+## 🏃‍♂️ Running the Application
+
+### Development Mode
+```bash
+# Method 1: Using run.py
+python run.py
+
+# Method 2: Using Flask CLI
+export FLASK_APP=app.py
+flask run
+
+# Method 3: Direct execution
+python app.py
+```
+
+### Production Mode
+```bash
+# Using Gunicorn
+gunicorn -w 4 -b 0.0.0.0:5000 app:app
+
+# Using Docker (if Dockerfile exists)
+docker build -t dmabn-viewer .
+docker run -p 5000:5000 dmabn-viewer
+```
+
+## 📁 File Structure Overview
+
+```
+dmabn-md-viewer/
+├── app.py                    # Main Flask application (✅ Created)
+├── run.py                    # Development runner (✅ Created)
+├── config.py                 # Configuration (✅ Created)
+├── requirements.txt          # Dependencies (✅ Created)
+├── .env.example             # Environment template (✅ Created)
+├── .env                     # Your environment (create from .env.example)
+├── 
+├── app/
+│   ├── __init__.py          # Need to create
+│   ├── models/
+│   │   ├── __init__.py      # Need to create
+│   │   ├── trajectory.py    # ✅ Created
+│   │   ├── excitation.py    # ✅ Created
+│   │   └── analysis.py      # Need to create
+│   ├── routes/              # Need to create
+│   ├── static/              # Need to create
+│   ├── templates/
+│   │   ├── base.html        # ✅ Created
+│   │   └── index.html       # ✅ Created
+│   └── utils/               # Need to create
+└── data/                    # Will be created automatically
+```
+
+## 🔧 Next Steps
+
+1. **Create missing utility files**
+2. **Add CSS styling**
+3. **Implement JavaScript frontend**
+4. **Test with sample data**
+5. **Deploy to production**
+
+## 🐛 Troubleshooting
+
+### Common Issues:
+
+**Import Errors:**
+```bash
+# Make sure you're in the virtual environment
+source venv/bin/activate  # Linux/Mac
+# or
+venv\Scripts\activate     # Windows
+
+# Install missing packages
+pip install -r requirements.txt
+```
+
+**Port Already in Use:**
+```bash
+# Change port in .env file
+FLASK_PORT=5001
+
+# Or kill existing process
+sudo lsof -ti:5000 | xargs kill -9  # Linux/Mac
+```
+
+**File Upload Issues:**
+```bash
+# Check directory permissions
+mkdir -p data/uploads data/processed
+chmod 755 data/uploads data/processed
+```
+
+## 🎯 Testing
+
+```bash
+# Run with sample data
+python run.py
+
+# Open browser to http://localhost:5000
+# Upload test files and verify functionality
+```
+
+## 📦 Deployment Options
+
+1. **Heroku** - Easy cloud deployment
+2. **DigitalOcean** - VPS with Docker
+3. **AWS/GCP** - Enterprise cloud platforms
+4. **Local Server** - On-premise deployment
+
+The Flask structure provides much better organization, server-side processing power, and professional development practices compared to the simple static site!

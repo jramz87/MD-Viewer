@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+venv-system/
+env/
+ENV/
+.env
+
+# Flask
+instance/
+.webassets-cache
+
+# Node modules and build files
+node_modules/
+npm-debug.log*
+
+# Data files (might be large)
+data/uploads/*
+data/processed/*
+!data/uploads/.gitkeep
+!data/processed/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

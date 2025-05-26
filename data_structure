@@ -1,0 +1,111 @@
+# 🧬 DMABN MD Viewer - Flask Application
+
+## 📁 Project Structure
+
+```
+dmabn-md-viewer/
+├── app.py                          # Main Flask application
+├── requirements.txt                # Python dependencies
+├── config.py                      # Configuration settings
+├── run.py                         # Application runner
+├── wsgi.py                        # WSGI entry point for deployment
+├── .env                           # Environment variables (local)
+├── .gitignore                     # Git ignore file
+├── README.md                      # Documentation
+├── 
+├── app/                           # Main application package
+│   ├── __init__.py               # Flask app factory
+│   ├── routes/                   # Route handlers
+│   │   ├── __init__.py
+│   │   ├── main.py              # Main routes
+│   │   ├── api.py               # API endpoints
+│   │   ├── upload.py            # Upload route handler
+│   │   
+│   ├── 
+│   ├── models/                   # Data models and processors
+│   │   ├── __init__.py
+│   │   ├── trajectory.py        # Trajectory data handling
+│   │   ├── excitation.py        # Excitation data processing
+│   │   └── analysis.py          # Data analysis functions
+│   ├── 
+│   ├── static/                   # Static files
+│   │   ├── css/
+│   │   │   ├── main.css         # Main stylesheet
+│   │   │   └── components.css   # Component styles
+│   │   ├── js/
+│   │   │   ├── main.js          # Main JavaScript
+│   │   │   ├── viewer.js        # 3D viewer
+│   │   │   ├── charts.js        # Chart handling
+│   │   │   └── upload.js        # File upload
+│   │   ├── lib/                 # Third-party libraries
+│   │   └── assets/              # Images, icons, etc.
+│   ├── 
+│   ├── templates/                # Jinja2 templates
+│   │   ├── base.html            # Base template
+│   │   ├── index.html           # Main page
+│   │   ├── viewer.html          # Viewer interface
+│   │   └── components/          # Reusable components
+│   │       ├── navbar.html
+│   │       ├── upload.html
+│   │       └── viewer_panel.html
+│   ├── 
+│   └── utils/                    # Utility functions
+│       ├── __init__.py
+│       ├── file_parser.py       # File parsing utilities
+│       ├── data_processor.py    # Data processing
+│       └── validators.py        # Input validation
+├── 
+├── data/                         # Data storage
+│   ├── uploads/                 # Uploaded files
+│   ├── processed/               # Processed data cache
+│   └── examples/                # Example data files
+├── 
+├── tests/                        # Unit tests
+│   ├── __init__.py
+│   ├── test_models.py
+│   ├── test_routes.py
+│   └── test_utils.py
+├── 
+└── deployment/                   # Deployment configurations
+    ├── docker/
+    │   ├── Dockerfile
+    │   └── docker-compose.yml
+    ├── nginx/
+    │   └── nginx.conf
+    └── systemd/
+        └── dmabn-viewer.service
+```
+
+## 🚀 Benefits of This Structure
+
+### **Backend Power**
+- **Use your existing Python MD code** directly
+- **Server-side processing** for large files
+- **Database integration** for storing results
+- **API endpoints** for data access
+- **Background tasks** for heavy computations
+
+### **Professional Organization**
+- **Modular structure** - easy to maintain
+- **Separation of concerns** - models, views, controllers
+- **Reusable components** - templates and utilities
+- **Testing framework** - unit and integration tests
+- **Deployment ready** - Docker, nginx, systemd configs
+
+### **Enhanced Features**
+- **Session management** - remember user data
+- **Progress tracking** - real-time processing updates
+- **Data caching** - faster subsequent loads
+- **Multiple file formats** - extend beyond XYZ
+- **Advanced analysis** - RMSD, correlations, etc.
+- **Export capabilities** - PDF reports, CSV data
+- **User authentication** - if needed for sharing
+
+## 🎯 Key Advantages
+
+1. **Scalability** - Handle large datasets server-side
+2. **Integration** - Use your existing Python analysis code
+3. **Performance** - Cache processed data, background tasks
+4. **Flexibility** - Easy to add new features and routes
+5. **Deployment** - Professional deployment options
+6. **Maintenance** - Clean, organized, testable code
