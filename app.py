@@ -108,13 +108,13 @@ def viewer():
     # 4. If still no session, redirect to upload
     if not session_id:
         return render_template('index.html', 
-                             error="No molecular data found. Please upload your files first.")
+                            error="No molecular data found. Please upload your files first.")
     
     # Verify session data exists
     processed_file = os.path.join(app.config['PROCESSED_FOLDER'], f"{session_id}_processed.json")
     if not os.path.exists(processed_file):
         return render_template('index.html', 
-                             error=f"Session data not found for {session_id}. Please upload your files again.")
+                            error=f"Session data not found for {session_id}. Please upload your files again.")
     
     return render_template('viewer.html', session_id=session_id)
 
@@ -395,4 +395,6 @@ def internal_error(error):
     return jsonify({'error': 'Internal server error'}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    import os
+    port = int(os.environ.get('PORT', 5001))
+    app.run(host='0.0.0.0', port=port, debug=False)
