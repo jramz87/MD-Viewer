@@ -1,5 +1,5 @@
-[providers]
-python = "3.12"
+[phases.setup]
+nixPkgs = ['python312', 'pip']
 
 [phases.build]
 cmds = ['pip install -r requirements.txt']
