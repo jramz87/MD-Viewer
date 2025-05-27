@@ -25,7 +25,11 @@ from app.utils.file_parser import FileParser
 class Config:
     UPLOAD_FOLDER = 'data/uploads'
     PROCESSED_FOLDER = 'data/processed'
-    MAX_CONTENT_LENGTH = 100 * 1024 * 1024  # 100MB
+    UPLOAD_FOLDER = 'data/uploads'
+    PROCESSED_FOLDER = 'data/processed'
+    MAX_CONTENT_LENGTH = 500 * 1024 * 1024  # 500MB
+    SEND_FILE_MAX_AGE_DEFAULT = 0
+    PERMANENT_SESSION_LIFETIME = 2*3600  # 2 hours
 
 # Simple file validation function
 def validate_file(file):
@@ -55,6 +59,10 @@ def validate_file(file):
 app = Flask(__name__, template_folder='app/templates', static_folder='app/static')
 app.secret_key = 'toto'
 app.config.from_object(Config)
+
+# Timeout configurations
+app.config['UPLOAD_TIMEOUT'] = 600  # 10 minutes
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 # Enable CORS
 CORS(app)
@@ -120,13 +128,13 @@ def viewer():
 
 @app.route('/api/upload', methods=['POST'])
 def upload_files():
-    """Handle file uploads"""
+    """Handle file uploads with better timeout handling"""
     try:
         if 'files' not in request.files:
             return jsonify({'error': 'No files provided'}), 400
         
         files = request.files.getlist('files')
-        if not files:
+        if not files or all(f.filename == '' for f in files):
             return jsonify({'error': 'No files selected'}), 400
         
         # Generate unique session ID
@@ -138,26 +146,47 @@ def upload_files():
         os.makedirs(session_folder, exist_ok=True)
         
         uploaded_files = {}
+        total_size = 0
         
         for file in files:
             if file.filename == '':
                 continue
+                
+            # Check file size before processing
+            file.seek(0, 2)  # Seek to end
+            file_size = file.tell()
+            file.seek(0)  # Reset to beginning
+            
+            total_size += file_size
+            
+            # Check total size limit (500MB)
+            if total_size > 500 * 1024 * 1024:
+                return jsonify({'error': 'Total file size exceeds 500MB limit'}), 400
                 
             # Validate file
             validation_result = validate_file(file)
             if not validation_result['valid']:
                 return jsonify({'error': f"Invalid file {file.filename}: {validation_result['error']}"}), 400
             
-            # Save file
+            # Save file with progress tracking
             filename = secure_filename(file.filename)
             filepath = os.path.join(session_folder, filename)
-            file.save(filepath)
+            
+            # Save in chunks to avoid memory issues
+            with open(filepath, 'wb') as f:
+                while True:
+                    chunk = file.read(8192)  # 8KB chunks
+                    if not chunk:
+                        break
+                    f.write(chunk)
             
             uploaded_files[filename] = {
                 'path': filepath,
                 'size': os.path.getsize(filepath),
                 'type': validation_result['type']
             }
+        
+        app.logger.info(f"Successfully uploaded {len(uploaded_files)} files for session {session_id}")
         
         return jsonify({
             'success': True,
