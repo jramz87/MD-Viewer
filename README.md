@@ -30,7 +30,7 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Navigate to `http://localhost:8080`
+Navigate to `http://localhost:5000`
 
 ## Usage
 
