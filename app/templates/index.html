@@ -4,20 +4,11 @@
 {% extends "base.html" %}
 
 {% block title %}Home - MD Viewer{% endblock %}
-
 {% block content %}
 <div class="hero-section">
     <div class="hero-content">
-        <h1>Molecular Dynamics and Excited-State Evolution Viewer</h1>
-        <p class="hero-subtitle">
-            Molecular Dynamics Visualization and Excitation Analysis GUI
-        </p>
+        <h1>Molecular Dynamics and Excited-State Viewer</h1>
         <div class="hero-features">
-            <div class="feature">
-                <h3>3D Visualization</h3>
-                <p>Real-time molecular structure rendering with advanced controls</p>
-                <p>Server-side processing for large datasets and complex calculations</p>
-            </div>
             <div class="feature">
                 <h3>Data Analysis</h3>
                 <p>Implements spectroscopic and structural analysis tools</p>
@@ -28,7 +19,7 @@
                 <h3>Requirements</h3>
                 <p>Molecular Dynamics trajectory calculated from TeraChem [coors.xyz]</p>
                 <p>
-                    (Optional) Excited state information extracted from TDDFT calculations on snapshots
+                    (Optional) Excited state information extracted from TDDFT calculations on snapshots,
                     currently supports two excited states [s1.dat and s2.dat, failed calculations listed in fail.dat]
                 </p>
             </div>
@@ -72,7 +63,6 @@
         <div class="footer-content">
             <div class="footer-section">
                 <h4>MD Viewer</h4>
-                <p>Visualization tool for molecular dynamics and excited-states evolution</p>
             </div>
         </div>
         
