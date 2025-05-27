@@ -8,7 +8,9 @@ import os
 import sys
 import json
 import uuid
-from datetime import datetime
+import threading
+import time
+from datetime import datetime, timedelta
 
 import numpy as np
 from flask import Flask, render_template, request, jsonify, session, send_from_directory
@@ -415,6 +417,50 @@ def get_analysis(session_id):
         app.logger.error(f"Analysis retrieval error: {str(e)}")
         return jsonify({'error': f'Failed to retrieve analysis: {str(e)}'}), 500
 
+@app.route('/api/cleanup', methods=['POST'])
+def manual_cleanup():
+    """Manually trigger cleanup"""
+    try:
+        days = request.json.get('days', 1) if request.is_json else 1
+        cleaned = cleanup_old_sessions(days)
+        return jsonify({
+            'success': True,
+            'cleaned_sessions': cleaned,
+            'message': f'Cleaned up {cleaned} sessions older than {days} days'
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/storage')
+def storage_info():
+    """Get current storage usage"""
+    try:
+        total_size = 0
+        session_count = 0
+        
+        # Calculate upload folder size
+        if os.path.exists(app.config['UPLOAD_FOLDER']):
+            for root, dirs, files in os.walk(app.config['UPLOAD_FOLDER']):
+                total_size += sum(os.path.getsize(os.path.join(root, file)) for file in files)
+            session_count = len([d for d in os.listdir(app.config['UPLOAD_FOLDER']) 
+                            if os.path.isdir(os.path.join(app.config['UPLOAD_FOLDER'], d))])
+        
+        # Calculate processed folder size
+        if os.path.exists(app.config['PROCESSED_FOLDER']):
+            for file in os.listdir(app.config['PROCESSED_FOLDER']):
+                total_size += os.path.getsize(os.path.join(app.config['PROCESSED_FOLDER'], file))
+        
+        return jsonify({
+            'total_size_mb': round(total_size / (1024 * 1024), 2),
+            'total_size_gb': round(total_size / (1024 * 1024 * 1024), 3),
+            'session_count': session_count,
+            'limit_gb': 5,
+            'cleanup_schedule': 'Daily (24 hour retention)'
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.errorhandler(404)
 def not_found(error):
     return jsonify({'error': 'Not found'}), 404
@@ -422,6 +468,72 @@ def not_found(error):
 @app.errorhandler(500)
 def internal_error(error):
     return jsonify({'error': 'Internal server error'}), 500
+
+# Handle cleaning up of session data > 1 day old
+def cleanup_old_sessions(days_old=1):
+    """Delete sessions older than specified days"""
+    try:
+        cutoff_date = datetime.now() - timedelta(days=days_old)
+        cleaned_count = 0
+        
+        # Clean processed files
+        if os.path.exists(app.config['PROCESSED_FOLDER']):
+            for filename in os.listdir(app.config['PROCESSED_FOLDER']):
+                filepath = os.path.join(app.config['PROCESSED_FOLDER'], filename)
+                if os.path.getctime(filepath) < cutoff_date.timestamp():
+                    os.remove(filepath)
+                    cleaned_count += 1
+                    app.logger.info(f"Deleted processed file: {filename}")
+        
+        # Clean upload folders
+        if os.path.exists(app.config['UPLOAD_FOLDER']):
+            for session_dir in os.listdir(app.config['UPLOAD_FOLDER']):
+                session_path = os.path.join(app.config['UPLOAD_FOLDER'], session_dir)
+                if os.path.isdir(session_path) and os.path.getctime(session_path) < cutoff_date.timestamp():
+                    shutil.rmtree(session_path)
+                    cleaned_count += 1
+                    app.logger.info(f"Deleted session folder: {session_dir}")
+        
+        app.logger.info(f"Daily cleanup completed: removed {cleaned_count} old sessions")
+        return cleaned_count
+        
+    except Exception as e:
+        app.logger.error(f"Cleanup error: {str(e)}")
+        return 0
+
+def daily_cleanup_task():
+    """Background task that runs daily cleanup"""
+    while True:
+        try:
+            # Wait 24 hours (86400 seconds)
+            time.sleep(86400)
+            
+            # Run cleanup for sessions older than 1 day
+            cleaned = cleanup_old_sessions(days_old=1)
+            app.logger.info(f"Daily cleanup: removed {cleaned} sessions")
+            
+        except Exception as e:
+            app.logger.error(f"Daily cleanup error: {str(e)}")
+            # Continue the loop even if cleanup fails
+            time.sleep(3600)  # Wait 1 hour before retrying
+
+def start_daily_cleanup():
+    """Start the daily cleanup background thread"""
+    try:
+        cleanup_thread = threading.Thread(target=daily_cleanup_task, daemon=True)
+        cleanup_thread.start()
+        app.logger.info("Daily cleanup task started - sessions will be deleted after 24 hours")
+        
+        # Run initial cleanup on startup
+        initial_cleaned = cleanup_old_sessions(days_old=1)
+        app.logger.info(f"Initial cleanup on startup: removed {initial_cleaned} old sessions")
+        
+    except Exception as e:
+        app.logger.error(f"Failed to start daily cleanup: {str(e)}")
+
+# Start daily cleanup when app initializes
+start_daily_cleanup()
+
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
