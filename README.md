@@ -1,4 +1,4 @@
-# DMABN Molecular Dynamics Viewer
+# Molecular Dynamics Viewer
 
 A web application for visualizing and analyzing molecular dynamics simulations with real-time 3D rendering and interactive data visualization.
 
