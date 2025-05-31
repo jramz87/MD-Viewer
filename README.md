@@ -18,7 +18,7 @@ A web application for visualizing and analyzing molecular dynamics simulations w
 ## Tech Stack
 
 **Backend:** Flask, NumPy, Pandas, Matplotlib, SciPy  
-**Frontend:** Three.js, Chart.js, CSS, JavaScript  
+**Frontend:** Three.js, Chart.js, Tailwind CSS, JavaScript  
 **Deployment:** Docker, Railway
 
 ## Quick Start
