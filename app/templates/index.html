@@ -1,103 +1,563 @@
-
-<!DOCTYPE html>
-<html lang="en">
 {% extends "base.html" %}
 
 {% block title %}Home - MD Viewer{% endblock %}
+
 {% block content %}
-<div class="hero-section">
-    <div class="hero-content">
-        <h1>Molecular Dynamics and Excited-State Viewer</h1>
-        <div class="hero-features">
-            <div class="feature">
-                <h3>Data Analysis</h3>
-                <p>Implements spectroscopic and structural analysis tools</p>
-                <p>(In Progress) Statistical Mechanics Analysis</p>
-                <p>(In Progress) Transient Absorption Simulation</p>
+<!-- Hero Section -->
+<div class="relative isolate overflow-hidden bg-gray-900 py-24 sm:py-32">
+    <div class="hidden sm:absolute sm:-top-10 sm:right-1/2 sm:-z-10 sm:mr-10 sm:block sm:transform-gpu sm:blur-3xl">
+        <div class="aspect-[1097/845] w-[68.5625rem] bg-gradient-to-tr from-molecular-sage to-molecular-sage-light opacity-20" style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)"></div>
+    </div>
+    <div class="absolute -top-52 left-1/2 -z-10 -translate-x-1/2 transform-gpu blur-3xl sm:top-[-28rem] sm:ml-16 sm:translate-x-0 sm:transform-gpu">
+        <div class="aspect-[1097/845] w-[68.5625rem] bg-gradient-to-tr from-molecular-charcoal to-molecular-gray opacity-30" style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)"></div>
+    </div>
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+        <div class="mx-auto max-w-2xl lg:mx-0">
+            <h2 class="text-5xl font-semibold tracking-tight text-white sm:text-7xl">Molecular Dynamics and Excited-State Viewer</h2>
+            <p class="mt-8 text-lg font-medium text-pretty text-gray-400 sm:text-xl/8">Visualization and analysis platform to assist in computational chemistry research.</p>
+        </div>
+        <div class="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-6 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-2 lg:gap-8">
+            <div class="flex gap-x-4 rounded-xl bg-white/5 p-6 ring-1 ring-white/10 ring-inset">
+                <svg class="h-5 w-5 flex-none text-molecular-sage mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M3 3v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v12z"/>
+                </svg>
+                <div class="text-base/7">
+                    <h3 class="font-semibold text-white">Data Analysis</h3>
+                    <p class="mt-2 text-gray-300">Implements spectroscopic and structural analysis tools</p>
+                    <p class="mt-2 text-gray-300">(In Progress) Statistical Mechanics Analysis</p>
+                    <p class="mt-2 text-gray-300">(In Progress) Transient Absorption Simulation</p>
+                </div>
             </div>
-            <div class="feature">
-                <h3>Requirements</h3>
-                <p>Molecular Dynamics trajectory calculated from TeraChem [coors.xyz]</p>
-                <p>
-                    (Optional) Excited state information extracted from TDDFT calculations on snapshots,
-                    currently supports two excited states [s1.dat and s2.dat, failed calculations listed in fail.dat]
+            <div class="flex gap-x-4 rounded-xl bg-white/5 p-6 ring-1 ring-white/10 ring-inset">
+                <svg class="h-5 w-5 flex-none text-molecular-sage mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M2 3.5A1.5 1.5 0 0 1 3.5 2h9A1.5 1.5 0 0 1 14 3.5v11.75A2.75 2.75 0 0 0 16.75 18h-12A2.75 2.75 0 0 1 2 15.25V3.5Z" clip-rule="evenodd" />
+                </svg>
+                <div class="text-base/7">
+                    <h3 class="font-semibold text-white">Requirements</h3>
+                    <p class="mt-2 text-gray-300">Molecular Dynamics trajectory calculated from TeraChem [coors.xyz]</p>
+                    <p class="mt-2 text-gray-300">(Optional) Excited state information extracted from TDDFT calculations on snapshots, currently supports two excited states [s1.dat and s2.dat, failed calculations listed in fail.dat]</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Section -->
+<div class="bg-gradient-to-b from-molecular-charcoal to-molecular-gray py-16">
+    <div class="max-w-4xl mx-auto px-6">
+        <!-- Upload Status Container (Hidden by default) -->
+        <div id="uploadStatusContainer" class="hidden mb-8">
+            <!-- File Upload Checklist -->
+            <div id="fileChecklist" class="bg-white/5 backdrop-blur-sm rounded-xl p-8 border border-molecular-sage/30 mb-6">
+                <h4 class="text-lg font-semibold text-white mb-6 flex items-center gap-3">
+                    <svg class="w-6 h-6 text-molecular-sage" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 6a2 2 0 114 0 2 2 0 01-4 0zm8-1a1 1 0 100-2 1 1 0 000 2z"></path></svg>
+                    Uploaded Files
+                </h4>
+                
+                <!-- Required Files -->
+                <div class="space-y-4">
+                    <div>
+                        <h5 class="text-sm font-medium text-molecular-sage-light mb-3">Required Files</h5>
+                        <div id="requiredFileItem" class="flex items-center gap-3 p-3 bg-black/20 rounded-lg border border-red-500/30">
+                            <div class="flex items-center gap-3">
+                                <div class="group grid size-4 grid-cols-1">
+                                    <input id="coorsCheckbox" type="checkbox" disabled class="col-start-1 row-start-1 appearance-none rounded-sm border border-red-400 bg-transparent checked:border-green-500 checked:bg-green-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500">
+                                    <svg class="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-white group-has-disabled:stroke-gray-950/25" viewBox="0 0 14 14" fill="none">
+                                        <path class="opacity-0 group-has-checked:opacity-100" d="M3 8L6 11L11 3.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </div>
+                                <code class="bg-molecular-charcoal/60 px-3 py-2 rounded-lg font-mono text-sm border border-red-500/40 text-red-200">coors.xyz</code>
+                            </div>
+                            <span class="text-gray-300 text-sm">XYZ trajectory file from TeraChem</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Optional Files -->
+                    <div>
+                        <h5 class="text-sm font-medium text-molecular-sage-light mb-3">Optional Files</h5>
+                        <div class="space-y-2">
+                            <div id="s1FileItem" class="flex items-center gap-3 p-3 bg-black/20 rounded-lg border border-blue-500/30">
+                                <div class="flex items-center gap-3">
+                                    <div class="group grid size-4 grid-cols-1">
+                                        <input id="s1Checkbox" type="checkbox" disabled class="col-start-1 row-start-1 appearance-none rounded-sm border border-blue-400 bg-transparent checked:border-green-500 checked:bg-green-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500">
+                                        <svg class="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-white group-has-disabled:stroke-gray-950/25" viewBox="0 0 14 14" fill="none">
+                                            <path class="opacity-0 group-has-checked:opacity-100" d="M3 8L6 11L11 3.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                    </div>
+                                    <code class="bg-molecular-charcoal/60 px-3 py-2 rounded-lg font-mono text-sm border border-blue-500/40 text-blue-200">s1.dat</code>
+                                </div>
+                                <span class="text-gray-300 text-sm">S1 excitation energies and oscillator strengths</span>
+                            </div>
+                            
+                            <div id="s2FileItem" class="flex items-center gap-3 p-3 bg-black/20 rounded-lg border border-purple-500/30">
+                                <div class="flex items-center gap-3">
+                                    <div class="group grid size-4 grid-cols-1">
+                                        <input id="s2Checkbox" type="checkbox" disabled class="col-start-1 row-start-1 appearance-none rounded-sm border border-purple-400 bg-transparent checked:border-green-500 checked:bg-green-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500">
+                                        <svg class="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-white group-has-disabled:stroke-gray-950/25" viewBox="0 0 14 14" fill="none">
+                                            <path class="opacity-0 group-has-checked:opacity-100" d="M3 8L6 11L11 3.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                    </div>
+                                    <code class="bg-molecular-charcoal/60 px-3 py-2 rounded-lg font-mono text-sm border border-purple-500/40 text-purple-200">s2.dat</code>
+                                </div>
+                                <span class="text-gray-300 text-sm">S2 excitation energies and oscillator strengths</span>
+                            </div>
+                            
+                            <div id="failFileItem" class="flex items-center gap-3 p-3 bg-black/20 rounded-lg border border-orange-500/30">
+                                <div class="flex items-center gap-3">
+                                    <div class="group grid size-4 grid-cols-1">
+                                        <input id="failCheckbox" type="checkbox" disabled class="col-start-1 row-start-1 appearance-none rounded-sm border border-orange-400 bg-transparent checked:border-green-500 checked:bg-green-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500">
+                                        <svg class="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-white group-has-disabled:stroke-gray-950/25" viewBox="0 0 14 14" fill="none">
+                                            <path class="opacity-0 group-has-checked:opacity-100" d="M3 8L6 11L11 3.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                    </div>
+                                    <code class="bg-molecular-charcoal/60 px-3 py-2 rounded-lg font-mono text-sm border border-orange-500/40 text-orange-200">fail.dat</code>
+                                </div>
+                                <span class="text-gray-300 text-sm">List of failed TDDFT calculations</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Processing Status -->
+            <div id="processingStatus" class="bg-white/5 backdrop-blur-sm rounded-xl p-8 border border-molecular-sage/30 mb-6">
+                <h4 class="sr-only">Upload Status</h4>
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-10 h-10 bg-molecular-sage/20 rounded-full flex items-center justify-center border border-molecular-sage/40">
+                        <div class="w-5 h-5 border-2 border-molecular-sage border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                    <div>
+                        <p class="text-lg font-medium text-white" id="statusTitle">Processing files...</p>
+                        <p class="text-sm text-molecular-sage-light" id="statusDescription">Analyzing molecular dynamics data</p>
+                    </div>
+                </div>
+                
+                <!-- Progress Bar -->
+                <div class="mt-6" aria-hidden="true">
+                    <div class="overflow-hidden rounded-full bg-molecular-gray/30">
+                        <div id="progressBar" class="h-2 rounded-full bg-gradient-to-r from-molecular-sage to-molecular-sage-light transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                    <div class="mt-4 grid grid-cols-4 text-sm font-medium text-molecular-sage-light">
+                        <div id="step1" class="text-molecular-sage">Uploading files</div>
+                        <div id="step2" class="text-center">Parsing data</div>
+                        <div id="step3" class="text-center">Processing</div>
+                        <div id="step4" class="text-right">Complete</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons Container -->
+            <div id="actionButtons" class="flex flex-wrap gap-4 justify-center">
+                <button id="viewResultsBtn" class="hidden bg-molecular-sage hover:bg-molecular-gray text-white border-2 border-molecular-sage hover:border-molecular-gray px-8 py-3 rounded-lg font-semibold transition-all duration-300 hover:scale-105 hover:-translate-y-1 shadow-lg hover:shadow-xl inline-flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    View Results
+                </button>
+                <button id="resetBtn" class="hidden bg-white/10 hover:bg-white/20 text-molecular-sage-light hover:text-white border-2 border-molecular-sage/30 hover:border-molecular-sage px-6 py-3 rounded-lg font-semibold transition-all duration-300 hover:scale-105 hover:-translate-y-1 shadow-lg hover:shadow-xl inline-flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    Upload New Files
+                </button>
+            </div>
+        </div>
+
+        <!-- Initial Upload Area -->
+        <div id="initialUploadArea">
+            <h2 class="text-3xl font-bold text-center text-white mb-12 flex items-center justify-center gap-3">
+                <span class="w-12 h-12 bg-molecular-sage/20 rounded-lg flex items-center justify-center border border-molecular-sage/40">
+                    <svg class="w-6 h-6 text-molecular-sage" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                </span>
+                Get Started
+            </h2>
+            
+            <div class="border-3 border-dashed border-molecular-sage rounded-xl p-12 text-center cursor-pointer transition-all duration-300 bg-white/5 backdrop-blur-sm hover:border-molecular-sage-light hover:bg-white/10 hover:-translate-y-1 hover:shadow-2xl" id="uploadArea">
+                <div class="mb-6">
+                    <div class="w-20 h-20 mx-auto bg-molecular-sage/20 rounded-full flex items-center justify-center hover:bg-molecular-sage/40 transition-all duration-500 hover:scale-110 border border-molecular-sage/30">
+                        <svg class="w-10 h-10 text-molecular-sage hover:text-white transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                    </div>
+                </div>
+                
+                <h3 class="text-xl font-semibold text-white mb-4 hover:text-molecular-sage-light transition-colors duration-300">
+                    Upload Your Data Files
+                </h3>
+                <p class="text-molecular-sage-light mb-8 hover:text-white transition-colors duration-300">
+                    Drop your files here or click to select
                 </p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="upload-section">
-    <div class="container">
-        <h2>Get Started</h2>
-        <div class="upload-area" id="uploadArea">
-            <div class="upload-icon"></div>
-            <h3>Upload Your Data Files</h3>
-            <p>Drop your files here or click to select</p>
-            <div class="file-requirements">
-                <h4>Required Files:</h4>
-                <ul>
-                    <li><strong>coors.xyz</strong> - XYZ trajectory file</li>
-                    <li><strong>s1.dat</strong> - S1 excitation data (optional)</li>
-                    <li><strong>s2.dat</strong> - S2 excitation data (optional)</li>
-                    <li><strong>fail.dat</strong> - Failed calculations (optional)</li>
-                </ul>
-            </div>
-            <input type="file" id="fileInput" multiple accept=".xyz,.dat,.txt" style="display: none;">
-            <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
-                Choose Files
+                
+                <div class="bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-xl p-8 mb-8 border border-molecular-sage/30 hover:border-molecular-sage/50 transition-all duration-300 shadow-lg text-left">
+                    <h4 class="text-lg font-semibold text-white mb-6 flex items-center gap-3">
+                        <svg class="w-6 h-6 text-molecular-sage" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 6a2 2 0 114 0 2 2 0 01-4 0zm8-1a1 1 0 100-2 1 1 0 000 2z"></path></svg>
+                        File Requirements
+                    </h4>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex items-center gap-3 mb-3">
+                                <span class="px-3 py-1 bg-red-500/20 text-red-300 text-xs font-medium rounded-full border border-red-400/30">
+                                    Required
+                                </span>
+                                <h5 class="text-molecular-sage-light font-medium">Trajectory Data</h5>
+                            </div>
+                            <div class="ml-6 p-4 bg-black/20 rounded-lg border-l-4 border-green-500">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                    <code class="bg-molecular-charcoal/60 px-3 py-2 rounded-lg font-mono text-sm border border-green-500/40 text-green-200">coors.xyz</code>
+                                    <span class="text-gray-300 text-sm">XYZ trajectory file from TeraChem</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex items-center gap-3 mb-3">
+                                <span class="px-3 py-1 bg-gray-500/20 text-gray-300 text-xs font-medium rounded-full border border-gray-400/30">
+                                    Optional
+                                </span>
+                                <h5 class="text-molecular-sage-light font-medium">Excited State Data</h5>
+                            </div>
+                            <div class="ml-6 space-y-3">
+                                <div class="p-4 bg-black/20 rounded-lg border-l-4 border-blue-500">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                                        <code class="bg-molecular-charcoal/60 px-3 py-2 rounded-lg font-mono text-sm border border-blue-500/40 text-blue-200">s1.dat</code>
+                                        <span class="text-gray-300 text-sm">S1 excitation energies and oscillator strengths</span>
+                                    </div>
+                                </div>
+                                <div class="p-4 bg-black/20 rounded-lg border-l-4 border-purple-500">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-3 h-3 bg-purple-500 rounded-full"></div>
+                                        <code class="bg-molecular-charcoal/60 px-3 py-2 rounded-lg font-mono text-sm border border-purple-500/40 text-purple-200">s2.dat</code>
+                                        <span class="text-gray-300 text-sm">S2 excitation energies and oscillator strengths</span>
+                                    </div>
+                                </div>
+                                <div class="p-4 bg-black/20 rounded-lg border-l-4 border-orange-500">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-3 h-3 bg-orange-500 rounded-full"></div>
+                                        <code class="bg-molecular-charcoal/60 px-3 py-2 rounded-lg font-mono text-sm border border-orange-500/40 text-orange-200">fail.dat</code>
+                                        <span class="text-gray-300 text-sm">List of failed TDDFT calculations</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <input type="file" id="fileInput" multiple accept=".xyz,.dat,.txt" class="hidden">
+                <button class="bg-molecular-sage hover:bg-molecular-gray text-white border-2 border-molecular-sage hover:border-molecular-gray px-8 py-3 rounded-lg font-semibold transition-all duration-300 hover:scale-105 hover:-translate-y-1 shadow-lg hover:shadow-xl inline-flex items-center gap-2" onclick="document.getElementById('fileInput').click()">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                    Choose Files
+                </button>
+                <button class="bg-molecular-sage-light hover:bg-molecular-sage text-white border-2 border-molecular-sage-light hover:border-molecular-sage px-8 py-3 rounded-lg font-semibold transition-all duration-300 hover:scale-105 hover:-translate-y-1 shadow-lg hover:shadow-xl inline-flex items-center gap-2"
+                    onclick="loadExampleData('DMABNvacuum')">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Load DMABN Sample Data
             </button>
-        </div>
-        
-        <div class="upload-progress" id="uploadProgress" style="display: none;">
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
             </div>
-            <p class="progress-text" id="progressText">Uploading...</p>
         </div>
     </div>
 </div>
-
-<footer class="footer">
-    <div class="container">
-        <div class="footer-content">
-            <div class="footer-section">
-                <h4>MD Viewer</h4>
-            </div>
-        </div>
-        
-        <div class="footer-bottom">
-            <p>&copy; 2025 MD Viewer</p>
-        </div>
-    </div>
-</footer>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/upload.js') }}"></script>
 <script>
-    // Initialize upload functionality
+    let uploadedFiles = [];
+
     document.addEventListener('DOMContentLoaded', function() {
         initializeUpload();
-        initializeExamples();
-        initializeFooterLinks();
+        initializeUploadEnhancements();
+        setupButtonEventListeners();
     });
     
-    // Example data loading functions
+    function initializeUploadEnhancements() {
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        
+        if (uploadArea && fileInput) {
+            // Drag and drop functionality
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }, false);
+            });
+            
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, () => {
+                    uploadArea.classList.add('scale-105', 'border-molecular-sage', 'bg-molecular-sage/10');
+                }, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, () => {
+                    uploadArea.classList.remove('scale-105', 'border-molecular-sage', 'bg-molecular-sage/10');
+                }, false);
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                const files = Array.from(e.dataTransfer.files);
+                uploadedFiles = files;
+                fileInput.files = e.dataTransfer.files;
+                const event = new Event('change', { bubbles: true });
+                fileInput.dispatchEvent(event);
+                showInfo(`${files.length} file(s) selected for upload`);
+            }, false);
+        }
+    }
+    
+    function initializeUpload() {
+        const fileInput = document.getElementById('fileInput');
+        if (fileInput) {
+            fileInput.addEventListener('change', function(e) {
+                const files = Array.from(e.target.files);
+                if (files.length > 0) {
+                    uploadedFiles = files;
+                    showInfo(`${files.length} file(s) selected`);
+                    
+                    const validExtensions = ['.xyz', '.dat', '.txt'];
+                    const invalidFiles = files.filter(file => 
+                        !validExtensions.some(ext => file.name.toLowerCase().endsWith(ext))
+                    );
+                    
+                    if (invalidFiles.length > 0) {
+                        showError(`Invalid file types detected: ${invalidFiles.map(f => f.name).join(', ')}`);
+                        return;
+                    }
+                    
+                    showSuccess(`Valid files selected: ${files.map(f => f.name).join(', ')}`);
+                    
+                    setTimeout(() => {
+                        startUploadProcess(files);
+                    }, 1500);
+                }
+            });
+        }
+    }
+    
+    function startUploadProcess(files) {
+        // Validate that coors.xyz is present
+        const hasRequiredFile = files.some(file => file.name.toLowerCase() === 'coors.xyz');
+        
+        if (!hasRequiredFile) {
+            showError('Error: coors.xyz file is required! Please select the required trajectory file.');
+            return;
+        }
+        
+        // Hide initial upload area and show status container
+        document.getElementById('initialUploadArea').classList.add('hidden');
+        document.getElementById('uploadStatusContainer').classList.remove('hidden');
+        
+        // Update file checkboxes based on uploaded files
+        updateFileCheckboxes(files);
+        
+        // Start the upload simulation
+        simulateUploadProcess();
+    }
+    
+    function updateFileCheckboxes(files) {
+        const fileNames = files.map(f => f.name.toLowerCase());
+        
+        // Reset all checkboxes first
+        const checkboxes = ['coorsCheckbox', 's1Checkbox', 's2Checkbox', 'failCheckbox'];
+        checkboxes.forEach(id => {
+            const checkbox = document.getElementById(id);
+            if (checkbox) {
+                checkbox.checked = false;
+            }
+        });
+        
+        // Check uploaded files
+        const fileMap = {
+            'coors.xyz': 'coorsCheckbox',
+            's1.dat': 's1Checkbox', 
+            's2.dat': 's2Checkbox',
+            'fail.dat': 'failCheckbox'
+        };
+        
+        Object.entries(fileMap).forEach(([fileName, checkboxId]) => {
+            if (fileNames.includes(fileName)) {
+                const checkbox = document.getElementById(checkboxId);
+                if (checkbox) {
+                    checkbox.checked = true;
+                }
+            }
+        });
+    }
+    
+    function simulateUploadProcess() {
+        const steps = [
+            { progress: 25, step: 1, title: 'Uploading files...', description: 'Transferring data to server' },
+            { progress: 50, step: 2, title: 'Parsing data...', description: 'Reading molecular structure data' },
+            { progress: 75, step: 3, title: 'Processing...', description: 'Analyzing trajectory and excited states' },
+            { progress: 100, step: 4, title: 'Complete!', description: 'Ready for visualization and analysis' }
+        ];
+
+        let currentStepIndex = 0;
+
+        function updateProgress() {
+            if (currentStepIndex < steps.length) {
+                const step = steps[currentStepIndex];
+                
+                // Update progress bar
+                const progressBar = document.getElementById('progressBar');
+                if (progressBar) {
+                    progressBar.style.width = `${step.progress}%`;
+                }
+                
+                // Update status text
+                const statusTitle = document.getElementById('statusTitle');
+                const statusDescription = document.getElementById('statusDescription');
+                if (statusTitle) statusTitle.textContent = step.title;
+                if (statusDescription) statusDescription.textContent = step.description;
+                
+                // Update step indicators
+                for (let i = 1; i <= 4; i++) {
+                    const stepEl = document.getElementById(`step${i}`);
+                    if (stepEl && i <= step.step) {
+                        stepEl.classList.add('text-molecular-sage');
+                        stepEl.classList.remove('text-molecular-sage-light');
+                    }
+                }
+                
+                // Show action buttons when complete
+                if (step.progress === 100) {
+                    showActionButtons();
+                    hideSpinner();
+                }
+                
+                currentStepIndex++;
+                setTimeout(updateProgress, 1500);
+            }
+        }
+
+        updateProgress();
+    }
+
+    function hideSpinner() {
+        const statusContainer = document.getElementById('processingStatus');
+        if (statusContainer) {
+            const spinner = statusContainer.querySelector('.animate-spin');
+            const icon = statusContainer.querySelector('.w-10');
+            
+            if (spinner && icon) {
+                spinner.classList.remove('animate-spin');
+                spinner.className = 'w-5 h-5 bg-green-500 rounded-full flex items-center justify-center';
+                spinner.innerHTML = '<svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>';
+                icon.classList.remove('border-molecular-sage/40');
+                icon.classList.add('border-green-500/40', 'bg-green-500/20');
+            }
+        }
+    }
+
+    function showActionButtons() {
+        setTimeout(() => {
+            const viewBtn = document.getElementById('viewResultsBtn');
+            if (viewBtn) {
+                viewBtn.classList.remove('hidden');
+            }
+            setTimeout(() => {
+                const resetBtn = document.getElementById('resetBtn');
+                if (resetBtn) {
+                    resetBtn.classList.remove('hidden');
+                }
+            }, 200);
+        }, 500);
+    }
+
+    function setupButtonEventListeners() {
+        // View Results Button
+        const viewResultsBtn = document.getElementById('viewResultsBtn');
+        if (viewResultsBtn) {
+            viewResultsBtn.addEventListener('click', function() {
+                this.innerHTML = '<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>Loading Viewer...';
+                setTimeout(() => {
+                    // Replace with actual Flask route
+                    window.location.href = '{{ url_for("viewer") }}';
+                }, 2000);
+            });
+        }
+
+        // Reset Button
+        const resetBtn = document.getElementById('resetBtn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', function() {
+                // Reset the interface
+                document.getElementById('uploadStatusContainer').classList.add('hidden');
+                document.getElementById('initialUploadArea').classList.remove('hidden');
+                
+                // Reset file input
+                const fileInput = document.getElementById('fileInput');
+                if (fileInput) {
+                    fileInput.value = '';
+                }
+                
+                // Reset all checkboxes
+                const checkboxes = ['coorsCheckbox', 's1Checkbox', 's2Checkbox', 'failCheckbox'];
+                checkboxes.forEach(id => {
+                    const checkbox = document.getElementById(id);
+                    if (checkbox) {
+                        checkbox.checked = false;
+                    }
+                });
+                
+                // Hide action buttons
+                document.getElementById('viewResultsBtn').classList.add('hidden');
+                document.getElementById('resetBtn').classList.add('hidden');
+                
+                // Reset progress bar
+                const progressBar = document.getElementById('progressBar');
+                if (progressBar) {
+                    progressBar.style.width = '0%';
+                }
+                
+                // Reset step indicators
+                for (let i = 1; i <= 4; i++) {
+                    const stepEl = document.getElementById(`step${i}`);
+                    if (stepEl) {
+                        stepEl.classList.remove('text-molecular-sage');
+                        stepEl.classList.add('text-molecular-sage-light');
+                    }
+                }
+                
+                // Reset status text
+                const statusTitle = document.getElementById('statusTitle');
+                const statusDescription = document.getElementById('statusDescription');
+                if (statusTitle) statusTitle.textContent = 'Processing files...';
+                if (statusDescription) statusDescription.textContent = 'Analyzing molecular dynamics data';
+                
+                // Reset spinner
+                const statusContainer = document.getElementById('processingStatus');
+                if (statusContainer) {
+                    const spinner = statusContainer.querySelector('.w-5');
+                    const icon = statusContainer.querySelector('.w-10');
+                    
+                    if (spinner && icon) {
+                        spinner.className = 'w-5 h-5 border-2 border-molecular-sage border-t-transparent rounded-full animate-spin';
+                        spinner.innerHTML = '';
+                        icon.classList.remove('border-green-500/40', 'bg-green-500/20');
+                        icon.classList.add('border-molecular-sage/40');
+                    }
+                }
+                
+                // Reset uploaded files
+                uploadedFiles = [];
+            });
+        }
+    }
+    
+    // Example data loading function
     function loadExampleData(type) {
-        showLoading('Loading example data...');
+        showLoading(`Loading ${type} example data...`);
         
         fetch(`/api/examples/${type}`, {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
+            headers: { 'Content-Type': 'application/json' }
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Redirect to viewer with loaded data
-                window.location.href = `/viewer?session=${data.session_id}`;
+                showSuccess('Example data loaded successfully!');
+                setTimeout(() => {
+                    window.location.href = `/viewer?session=${data.session_id}`;
+                }, 1000);
             } else {
                 showError(data.error || 'Failed to load example data');
             }
@@ -111,79 +571,148 @@
         });
     }
     
-    function initializeExamples() {
-        // Initialize example loading functionality
-        console.log('Examples initialized');
+    // Additional utility functions for upload handling
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
     
-    function initializeFooterLinks() {
-        // Initialize footer link handlers
-        window.showDocumentation = () => {
-            window.open('/docs', '_blank');
-        };
-        
-        window.showTutorial = () => {
-            window.open('/tutorial', '_blank');
-        };
-        
-        window.showExamples = () => {
-            document.querySelector('.examples-section').scrollIntoView({ behavior: 'smooth' });
-        };
-        
-        window.showSupport = () => {
-            alert('For support, please contact: support@dmabn-viewer.com');
-        };
-        
-        window.showPrivacy = () => {
-            alert('Privacy policy: We do not store your data permanently. All uploads are session-based and automatically deleted.');
-        };
-        
-        window.showTerms = () => {
-            alert('Terms: This tool is provided for research purposes. Please cite appropriately in publications.');
-        };
-        
-        window.showContact = () => {
-            alert('Contact: dmabn-viewer@research.edu');
-        };
+    function validateFileType(fileName) {
+        const validExtensions = ['.xyz', '.dat', '.txt'];
+        return validExtensions.some(ext => fileName.toLowerCase().endsWith(ext));
     }
     
-    // Loading overlay functions
-    function showLoading(message = 'Processing...') {
-        const overlay = document.getElementById('loading-overlay');
-        const messageEl = document.getElementById('loading-message');
-        if (overlay && messageEl) {
-            messageEl.textContent = message;
-            overlay.style.display = 'flex';
-        }
-    }
-    
-    function hideLoading() {
-        const overlay = document.getElementById('loading-overlay');
-        if (overlay) {
-            overlay.style.display = 'none';
-        }
-    }
-    
-    function showError(message) {
-        const toast = document.getElementById('error-toast');
-        const messageEl = toast.querySelector('.toast-message');
-        const closeBtn = toast.querySelector('.toast-close');
+    function getFileType(filename) {
+        const name = filename.toLowerCase();
         
-        if (toast && messageEl) {
-            messageEl.textContent = message;
-            toast.style.display = 'block';
-            
-            // Auto-hide after 5 seconds
-            setTimeout(() => {
-                toast.style.display = 'none';
-            }, 5000);
-            
-            // Close button handler
-            closeBtn.onclick = () => {
-                toast.style.display = 'none';
+        // Check for specific required file
+        if (name === 'coors.xyz') {
+            return {
+                label: 'Required',
+                bg: 'bg-red-500/20',
+                text: 'text-red-300',
+                border: 'border-red-400/30'
             };
         }
+        
+        // Check for known optional files
+        const optionalFiles = ['s1.dat', 's2.dat', 'fail.dat'];
+        if (optionalFiles.includes(name)) {
+            return {
+                label: 'Optional',
+                bg: 'bg-blue-500/20',
+                text: 'text-blue-300',
+                border: 'border-blue-400/30'
+            };
+        }
+        
+        // Unknown file
+        return {
+            label: 'Unknown',
+            bg: 'bg-yellow-500/20',
+            text: 'text-yellow-300',
+            border: 'border-yellow-400/30'
+        };
     }
+    
+    // File validation helper
+    function validateRequiredFiles(files) {
+        const fileNames = files.map(f => f.name.toLowerCase());
+        const hasRequired = fileNames.includes('coors.xyz');
+        
+        return {
+            valid: hasRequired,
+            missing: hasRequired ? [] : ['coors.xyz'],
+            optional: fileNames.filter(name => ['s1.dat', 's2.dat', 'fail.dat'].includes(name))
+        };
+    }
+    
+    // Enhanced error handling
+    function handleUploadError(error) {
+        console.error('Upload error:', error);
+        showError('Upload failed. Please try again or contact support.');
+        
+        // Reset to initial state on error
+        document.getElementById('uploadStatusContainer').classList.add('hidden');
+        document.getElementById('initialUploadArea').classList.remove('hidden');
+    }
+    
+    // Initialize upload handling when page loads
+    window.addEventListener('load', function() {
+        console.log('MD Viewer Upload Interface Loaded');
+        
+        // Check if there are any existing uploaded files from session
+        if (window.sessionStorage && sessionStorage.getItem('uploadedFiles')) {
+            try {
+                const savedFiles = JSON.parse(sessionStorage.getItem('uploadedFiles'));
+                if (savedFiles && savedFiles.length > 0) {
+                    console.log('Found existing uploaded files:', savedFiles);
+                    // Could restore state here if needed
+                }
+            } catch (e) {
+                console.log('No valid session data found');
+            }
+        }
+    });
+    
+    // Save upload state to session storage
+    function saveUploadState() {
+        if (window.sessionStorage && uploadedFiles.length > 0) {
+            try {
+                const fileData = uploadedFiles.map(f => ({
+                    name: f.name,
+                    size: f.size,
+                    type: f.type
+                }));
+                sessionStorage.setItem('uploadedFiles', JSON.stringify(fileData));
+            } catch (e) {
+                console.log('Could not save upload state');
+            }
+        }
+    }
+    
+    // Clear upload state from session storage
+    function clearUploadState() {
+        if (window.sessionStorage) {
+            sessionStorage.removeItem('uploadedFiles');
+        }
+    }
+    
+    // Add to startUploadProcess function
+    function enhancedStartUpload(files) {
+        saveUploadState();
+        startUploadProcess(files);
+    }
+    
+    // Enhanced drag and drop with visual feedback
+    function enhanceDragDrop() {
+        const uploadArea = document.getElementById('uploadArea');
+        if (uploadArea) {
+            uploadArea.addEventListener('dragenter', (e) => {
+                e.preventDefault();
+                uploadArea.style.transform = 'scale(1.02)';
+                uploadArea.style.borderColor = '#819595';
+            });
+            
+            uploadArea.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                uploadArea.style.transform = 'scale(1)';
+                uploadArea.style.borderColor = '';
+            });
+        }
+    }
+    
+    // Call enhanced functions on load
+    document.addEventListener('DOMContentLoaded', function() {
+        enhanceDragDrop();
+    });
 </script>
+
+<!-- Include external upload.js if it exists -->
+{% if url_for %}
+<script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+{% endif %}
 {% endblock %}
-</html>

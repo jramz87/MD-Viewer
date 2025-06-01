@@ -378,23 +378,44 @@ class MolecularViewer {
     updateFrameInfo(frame) {
         const frameInfo = document.getElementById('frame-info');
         console.log('frameInfo element:', frameInfo); // Debug log
-        
+
+        const timeFs = frame.time_fs || (this.currentFrame * 0.5);
+        const timePs = timeFs / 1000.0;
+
+        // Update embedded frame info block (for mobile or overlay views)
         if (frameInfo) {
-            const timeFs = frame.time_fs || (this.currentFrame * 0.5);
-            const timePs = timeFs / 1000.0;
-            
             frameInfo.innerHTML = `
                 <div class="frame-details">
                     <span><strong>Frame:</strong> ${this.currentFrame + 1}/${this.trajectoryData.length}</span>
                     <span><strong>Time:</strong> ${timeFs.toFixed(1)} fs (${timePs.toFixed(3)} ps)</span>
                 </div>
             `;
-            
-            // Update excitation data if available
-            this.updateExcitationInfo(timeFs);
         } else {
             console.error('❌ frame-info element not found in DOM');
         }
+
+        // ✅ Update sidebar "time-display"
+        const timeDisplay = document.getElementById('time-display');
+        if (timeDisplay) {
+            timeDisplay.textContent = timeFs.toFixed(1);
+        } else {
+            console.error('❌ time-display element not found in sidebar');
+        }
+
+        // ✅ Update sidebar "current-frame"
+        const currentFrameDisplay = document.getElementById('current-frame');
+        if (currentFrameDisplay) {
+            currentFrameDisplay.textContent = this.currentFrame + 1;
+        }
+
+        // ✅ Update sidebar "total-frames"
+        const totalFramesDisplay = document.getElementById('total-frames');
+        if (totalFramesDisplay) {
+            totalFramesDisplay.textContent = this.trajectoryData.length;
+        }
+
+        // Update excitation info panel
+        this.updateExcitationInfo(timeFs);
     }
     
     updateExcitationInfo(currentTimeFs) {
@@ -799,5 +820,97 @@ function setupViewerControls() {
     }
 }
 
-// Export for global access
+function makeDraggable(chart) {
+    const header = chart.querySelector('.bg-indigo-600'); // chart header for dragging
+    if (!header) return;
+
+    let isDragging = false;
+    let currentX, currentY, initialX, initialY;
+
+    header.style.cursor = 'move'; // Optional: change cursor to indicate draggable
+
+    header.addEventListener('mousedown', function(e) {
+        if (e.target.tagName === 'BUTTON') return; // Don't drag when clicking close
+
+        isDragging = true;
+        initialX = e.clientX - chart.offsetLeft;
+        initialY = e.clientY - chart.offsetTop;
+
+        document.addEventListener('mousemove', dragChart);
+        document.addEventListener('mouseup', stopDragging);
+    });
+
+    function dragChart(e) {
+        if (!isDragging) return;
+
+        currentX = e.clientX - initialX;
+        currentY = e.clientY - initialY;
+
+        const maxX = window.innerWidth - chart.offsetWidth;
+        const maxY = window.innerHeight - chart.offsetHeight;
+
+        currentX = Math.max(0, Math.min(currentX, maxX));
+        currentY = Math.max(0, Math.min(currentY, maxY));
+
+        chart.style.left = currentX + 'px';
+        chart.style.top = currentY + 'px';
+        chart.style.right = 'auto';
+    }
+
+    function stopDragging() {
+        isDragging = false;
+        document.removeEventListener('mousemove', dragChart);
+        document.removeEventListener('mouseup', stopDragging);
+    }
+}
+
+// Spectrum chart popup
+function showSpectrumChart() {
+    const container = document.getElementById('spectrum-floating');
+    if (container) {
+        container.classList.remove('hidden');
+
+        // Small delay to ensure DOM is ready before rendering chart
+        setTimeout(() => {
+            if (typeof createSpectrumChart === 'function') {
+                createSpectrumChart();
+            }
+            makeDraggable(container);
+        }, 100);
+    } else {
+        console.error('Spectrum container not found');
+    }
+}
+
+// Energy chart popup
+function showEnergyEvolution() {
+    const container = document.getElementById('energy-floating');
+    if (container) {
+        container.classList.remove('hidden');
+
+        setTimeout(() => {
+            if (typeof createEnergyChart === 'function') {
+                createEnergyChart();
+            }
+            makeDraggable(container);
+        }, 100);
+    } else {
+        console.error('Energy container not found');
+    }
+}
+
+function closeFloatingChart(chartId) {
+    const chart = document.getElementById(chartId);
+    if (chart) {
+        chart.classList.add('hidden');
+    } else {
+        console.error(`Chart container with ID "${chartId}" not found`);
+    }
+}
+
+// Global export
+window.showSpectrumChart = showSpectrumChart;
+window.showEnergyEvolution = showEnergyEvolution;
+window.closeFloatingChart = closeFloatingChart;
 window.MolecularViewer = MolecularViewer;
+

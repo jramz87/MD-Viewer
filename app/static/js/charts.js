@@ -12,7 +12,7 @@ class MolecularCharts {
         this.initialX = 0;
         this.initialY = 0;
         this.globalYAxisMax = null; // Store global maximum for fixed y-axis
-        console.log('🎯 MolecularCharts v2.0 - BAR CHART VERSION initialized');
+        console.log('Oscillator Strength Chart initialized');
     }
     
     setData(excitationData, trajectoryData) {
@@ -61,7 +61,7 @@ class MolecularCharts {
         else if (paddedMax <= 5.0) this.globalYAxisMax = 5.0;
         else this.globalYAxisMax = Math.ceil(paddedMax);
         
-        console.log(`📊 Global Y-axis maximum set to: ${this.globalYAxisMax}`);
+        console.log(`Global Y-axis maximum set to: ${this.globalYAxisMax}`);
     }
     
     createSpectrumChart() {
@@ -221,7 +221,7 @@ class MolecularCharts {
             }
         });
         
-        console.log('📊 Live spectrum chart created with bars and fixed y-axis');
+        console.log('Live spectrum chart created with bars and fixed y-axis');
     }
     
     showNoExcitationMessage(canvas) {
@@ -386,7 +386,7 @@ class MolecularCharts {
                 document.getElementById('spectrum-popup').style.display = 'none';
             };
             
-            console.log('✅ Close button setup complete');
+            console.log('Close button setup complete');
         }
     }
     
@@ -665,7 +665,7 @@ class MolecularCharts {
             }]
         });
         
-        console.log('📈 Enhanced Energy Evolution chart created with synchronized vertical bar');
+        console.log('Oscillator Strength synchronized with MD created');
     }
     
     findClosestExcitation(timeFs) {
@@ -930,7 +930,7 @@ function initializeCharts() {
                 molecularViewer.excitationData,
                 molecularViewer.trajectoryData
             );
-            console.log('📊 Charts initialized with data:', {
+            console.log('Plots loaded with real data:', {
                 excitation_points: molecularViewer.excitationData.length,
                 trajectory_frames: molecularViewer.trajectoryData.length
             });
@@ -940,12 +940,12 @@ function initializeCharts() {
 
 // Chart creation functions (called from HTML)
 function createSpectrumChart() {
-    console.log('🔥 createSpectrumChart called - NEW VERSION with bars!');
+    console.log('createSpectrumChart initialized');
     initializeCharts();
     if (molecularCharts) {
         molecularCharts.createSpectrumChart();
     } else {
-        console.error('❌ molecularCharts not initialized');
+        console.error('molecularCharts not initialized');
     }
 }
 

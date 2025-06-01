@@ -1,409 +1,336 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-gray-900">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}3D Molecular Viewer {% endblock %}</title>
+    <title>3D Molecular Viewer</title>
     
     <!-- Session and metadata -->
     <meta name="session-id" content="{{ session_id }}">
-    
+
+    <script src="{{ url_for('static', filename='js/viewer.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
     <!-- External libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/viewer.css') }}">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'molecular': {
+                            'charcoal': '#1f2937',
+                            'sage': '#6366f1',
+                            'sage-light': '#a5b4fc',
+                            'gray': '#374151'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     
-    {% block extra_head %}{% endblock %}
+    <style>
+        .slider::-webkit-slider-thumb {
+            appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #6366f1;
+            cursor: pointer;
+        }
+        
+        .slider::-moz-range-thumb {
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #6366f1;
+            cursor: pointer;
+            border: none;
+        }
+    </style>
 </head>
-<body>
-    <div class="viewer-layout">
-        <!-- Header -->
-        <div class="viewer-header">
-            <h1>Molecular Dynamics Viewer</h1>
-            <div class="session-info">
-                <span>Session: {{ session_id }}</span>
-                <button class="btn btn-secondary" onclick="window.location.href='/'">
-                    Back to Upload
-                </button>
+<body class="h-full bg-gray-900 text-white">
+    <!-- Mobile sidebar overlay -->
+    <div id="mobile-sidebar-overlay" class="relative z-50 lg:hidden hidden" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-gray-900/80" aria-hidden="true"></div>
+        <div class="fixed inset-0 flex">
+            <div class="relative mr-16 flex w-full max-w-xs flex-1">
+                <div class="absolute top-0 left-full flex w-16 justify-center pt-5">
+                    <button type="button" class="-m-2.5 p-2.5" onclick="toggleMobileSidebar()">
+                        <span class="sr-only">Close sidebar</span>
+                        <svg class="size-6 text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <!-- Mobile sidebar content -->
+                <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6 pb-4 ring-1 ring-white/10">
+                    <div class="flex h-16 shrink-0 items-center">
+                        <h1 class="text-lg font-semibold text-white">Molecular Viewer</h1>
+                    </div>
+                    <!-- Sidebar content will be duplicated here for mobile -->
+                    <div id="mobile-sidebar-content">
+                        <!-- Content will be copied from desktop sidebar -->
+                    </div>
+                </div>
             </div>
         </div>
-        
-        <!-- Main Viewer Area -->
-        <div class="viewer-main">
-            <!-- 3D Viewport -->
-            <div class="viewer-viewport">
-                <div id="viewer-container"></div>
-                <div id="viewer-error" class="error-overlay" style="display: none;"></div>
-                
-                <!-- Loading overlay -->
-                <div id="loading-overlay" class="loading-overlay">
-                    <div class="loading-content">
-                        <div class="spinner"></div>
-                        <h3>Loading Molecular Data...</h3>
-                        <p>Please wait while we prepare your simulation</p>
+    </div>
+
+    <!-- Static sidebar for desktop -->
+    <div class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-80 lg:flex-col">
+        <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6 pb-4">
+            <!-- Logo/Header -->
+            <div class="flex h-16 shrink-0 items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 9.172V5L8 4z" />
+                        </svg>
                     </div>
+                    <h1 class="text-lg font-semibold text-white">Molecular Viewer</h1>
                 </div>
             </div>
             
-            <!-- Control Panel -->
-            <div class="control-panel">
-                <div class="panel-section">
-                    <h3>Animation Controls</h3>
-                    <div class="controls-group">
-                        <button id="play-btn" class="btn btn-primary">▶️ Play</button>
-                        <button id="prev-btn" class="btn btn-secondary">⏮️ Prev</button>
-                        <button id="next-btn" class="btn btn-secondary">⏭️ Next</button>
-                    </div>
-                    
-                    <div class="slider-group">
-                        <label for="frame-slider">Frame:</label>
-                        <input type="range" id="frame-slider" min="0" max="100" value="0" class="slider">
-                        <div class="slider-info">
-                            <span id="current-frame">1</span> / <span id="total-frames">100</span>
+            <nav class="flex flex-1 flex-col">
+                <ul role="list" class="flex flex-1 flex-col gap-y-7">
+                    <!-- Molecular Stats Grid -->
+                    <li>
+                        <div class="text-xs font-semibold text-gray-400 mb-4">Simulation Status</div>
+                        <div class="grid grid-cols-2 gap-3 mb-6">
+                            <div class="bg-gray-800 p-4 rounded-lg">
+                                <p class="text-xs font-medium text-gray-400">Current Frame</p>
+                                <p class="mt-1 flex items-baseline gap-x-2">
+                                    <span id="current-frame" class="text-2xl font-semibold text-white">1</span>
+                                    <span id="total-frames" class="text-sm text-gray-400">/ 100</span>
+                                </p>
+                            </div>
+                            <div class="bg-gray-800 p-4 rounded-lg">
+                                <p class="text-xs font-medium text-gray-400">Time</p>
+                                <p class="mt-1 flex items-baseline gap-x-2">
+                                    <span id="time-display" class="text-2xl font-semibold text-white">0.0</span>
+                                    <span class="text-sm text-gray-400">fs</span>
+                                </p>
+                            </div>
+                            <div class="bg-gray-800 p-4 rounded-lg">
+                                <p class="text-xs font-medium text-gray-400">Atoms</p>
+                                <p class="mt-1">
+                                    <span id="atom-count" class="text-2xl font-semibold text-white">--</span>
+                                </p>
+                            </div>
+                            <div class="bg-gray-800 p-4 rounded-lg">
+                                <p class="text-xs font-medium text-gray-400">Speed</p>
+                                <p class="mt-1">
+                                    <span id="speed-display" class="text-2xl font-semibold text-white">1x</span>
+                                </p>
+                            </div>
                         </div>
-                    </div>
+                    </li>
                     
-                    <div class="slider-group">
-                        <label for="speed-slider">Speed:</label>
-                        <input type="range" id="speed-slider" min="0.1" max="5" step="0.1" value="1" class="slider">
-                        <div class="slider-info">
-                            <span id="speed-display">1x</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="panel-section">
-                    <h3>Frame Information</h3>
-                    <div id="frame-info" class="info-display">
-                        <div class="frame-details">
-                            <span><strong>Frame:</strong> 1/100</span>
-                            <span><strong>Time:</strong> 0.0 fs (0.000 ps)</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="panel-section">
-                    <h3>Excitation Data</h3>
-                    <div id="excitation-info" class="info-display">
-                        <div class="no-excitation">Loading excitation data...</div>
-                    </div>
-                </div>
-                
-                <div class="panel-section">
-                    <h3>Visualization Options</h3>
-                    <div class="options-group">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="show-bonds" checked>
-                            <span>Show Bonds</span>
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="show-labels">
-                            <span>Show Atom Labels</span>
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="show-trajectory">
-                            <span>Show Trajectory Trail</span>
-                        </label>
-                    </div>
+                    <!-- Navigation Menu -->
+                    <li>
+                        <ul role="list" class="-mx-2 space-y-1">
+                            <li>
+                                <a href="#" class="group flex gap-x-3 rounded-md bg-gray-800 p-2 text-sm font-semibold text-white">
+                                    <svg class="size-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 14.5M9.75 18.75l2.25-2.25m0 0l2.25 2.25m-2.25-2.25v-3.375a3.375 3.375 0 013.375-3.375h.75a2.25 2.25 0 012.25-2.25 24.75 24.75 0 00-4.875-1.25V18.75" />
+                                    </svg>
+                                    Viewer
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="group flex gap-x-3 rounded-md p-2 text-sm font-semibold text-gray-400 hover:bg-gray-800 hover:text-white">
+                                    <svg class="size-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
+                                    </svg>
+                                    Analytics
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="group flex gap-x-3 rounded-md p-2 text-sm font-semibold text-gray-400 hover:bg-gray-800 hover:text-white">
+                                    <svg class="size-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                    </svg>
+                                    Export
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                     
-                    <div class="color-options">
-                        <label for="background-color">Background:</label>
-                        <input type="color" id="background-color" value="#f0f0f0">
-                    </div>
+                    <!-- Animation Controls -->
+                    <li>
+                        <div class="text-xs font-semibold text-gray-400 mb-4">Animation Controls</div>
+                        <div class="space-y-4">
+                            <div class="flex gap-2">
+                                <button id="play-btn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md transition-colors font-medium text-sm">
+                                    ▶ Play
+                                </button>
+                                <button id="prev-btn" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-md transition-colors">
+                                    ⏮
+                                </button>
+                                <button id="next-btn" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-md transition-colors">
+                                    ⏭
+                                </button>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-400 mb-2">Frame:</label>
+                                <input type="range" id="frame-slider" min="0" max="100" value="0" 
+                                    class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-400 mb-2">Speed:</label>
+                                <input type="range" id="speed-slider" min="0.1" max="5" step="0.1" value="1" 
+                                    class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider">
+                            </div>
+                        </div>
+                    </li>
+                    
+                    <!-- Visualization Options -->
+                    <li>
+                        <div class="text-xs font-semibold text-gray-400 mb-4">Visualization</div>
+                        <div class="space-y-3">
+                            <label class="flex items-center gap-3 cursor-pointer p-2 rounded-md hover:bg-gray-800 transition-colors">
+                                <input type="checkbox" id="show-bonds" checked class="w-4 h-4 text-indigo-600 border-gray-600 rounded focus:ring-indigo-500 bg-gray-700">
+                                <span class="text-sm text-gray-300">Show Bonds</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer p-2 rounded-md hover:bg-gray-800 transition-colors">
+                                <input type="checkbox" id="show-labels" class="w-4 h-4 text-indigo-600 border-gray-600 rounded focus:ring-indigo-500 bg-gray-700">
+                                <span class="text-sm text-gray-300">Atom Labels</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer p-2 rounded-md hover:bg-gray-800 transition-colors">
+                                <input type="checkbox" id="show-trajectory" class="w-4 h-4 text-indigo-600 border-gray-600 rounded focus:ring-indigo-500 bg-gray-700">
+                                <span class="text-sm text-gray-300">Trajectory Trail</span>
+                            </label>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium text-gray-400 mb-2">Background:</label>
+                            <input type="color" id="background-color" value="#1f2937" 
+                                class="w-full h-10 border border-gray-600 rounded-md cursor-pointer bg-gray-700">
+                        </div>
+                    </li>
+                    
+                    <!-- Analysis Tools -->
+                    <li class="mt-auto">
+                        <div class="text-xs font-semibold text-gray-400 mb-4">Analysis Tools</div>
+                        <div class="space-y-2">
+                            <button class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md transition-colors font-medium text-sm" onclick="showSpectrumChart()">
+                                📊 Absorption Spectrum
+                            </button>
+                            <button class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md transition-colors font-medium text-sm" onclick="showEnergyEvolution()">
+                                📈 Oscillator Strength
+                            </button>
+                            <button class="w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-md transition-colors font-medium text-sm" onclick="exportFrame()">
+                                💾 Export Frame
+                            </button>
+                        </div>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main content area -->
+    <div class="lg:pl-80">
+        <!-- Top navigation bar -->
+        <div class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-700 bg-gray-900 px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+            <button type="button" class="-m-2.5 p-2.5 text-gray-400 lg:hidden" onclick="toggleMobileSidebar()">
+                <span class="sr-only">Open sidebar</span>
+                <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                </svg>
+            </button>
+
+            <!-- Separator -->
+            <div class="h-6 w-px bg-gray-600 lg:hidden" aria-hidden="true"></div>
+
+            <div class="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
+                <!-- Session info -->
+                <div class="flex items-center gap-4">
+                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span id="molecule-info" class="text-sm text-gray-300">Loading molecule data...</span>
                 </div>
                 
-                <div class="panel-section">
-                    <h3>📈 Analysis Tools</h3>
-                    <div class="analysis-buttons">
-                        <button class="btn btn-secondary" onclick="showSpectrumChart()">
-                            📊 Absorption Spectrum
-                        </button>
-                        <button class="btn btn-secondary" onclick="showEnergyEvolution()">
-                            📈 Global Oscillator Strength
-                        </button>
-                        <button class="btn btn-secondary" onclick="exportFrame()">
-                            💾 Export Frame (In Progress)
-                        </button>
-                    </div>
+                <!-- Right side controls -->
+                <div class="flex items-center gap-x-4 lg:gap-x-6 ml-auto">
+                    <button class="text-gray-400 hover:text-white transition-colors text-sm" onclick="resetView()">
+                        Reset View
+                    </button>
+                    <button class="text-gray-400 hover:text-white transition-colors text-sm" onclick="toggleFullscreen()">
+                        Fullscreen
+                    </button>
+                    
+                    <!-- Separator -->
+                    <div class="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-600" aria-hidden="true"></div>
+                    
+                    <!-- Back button -->
+                    <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md transition-colors text-sm font-medium" onclick="window.location.href='/'">
+                        ← Back to Upload
+                    </button>
                 </div>
             </div>
         </div>
-        
-        <!-- Status Bar -->
-        <div class="status-bar">
-            <div class="status-info">
-                <span id="molecule-info">Loading molecule data...</span>
+
+        <!-- 3D Viewport -->
+        <main class="relative">
+            <div id="viewer-container" class="w-full h-screen cursor-grab active:cursor-grabbing bg-gray-800"></div>
+            
+            <!-- Loading overlay -->
+            <div id="loading-overlay" class="absolute inset-0 bg-gray-900/95 backdrop-blur-sm flex items-center justify-center z-50">
+                <div class="text-center">
+                    <div class="w-16 h-16 border-4 border-gray-600 border-t-indigo-500 rounded-full animate-spin mx-auto mb-4"></div>
+                    <h3 class="text-lg font-medium text-white mb-2">Loading Molecular Data...</h3>
+                    <p class="text-gray-400">Please wait while we prepare your simulation</p>
+                </div>
             </div>
-            <div class="status-actions">
-                <button class="btn btn-small" onclick="resetView()"> Reset View</button>
-                <button class="btn btn-small" onclick="toggleFullscreen()">Fullscreen</button>
+            
+            <!-- Error overlay -->
+            <div id="viewer-error" class="absolute inset-0 bg-gray-900/95 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+                <div class="bg-red-600 text-white p-6 rounded-lg max-w-md text-center">
+                    <h3 class="text-lg font-semibold mb-2">Error Loading Data</h3>
+                    <p class="mb-4">There was an error loading your molecular data.</p>
+                    <button class="bg-white text-red-600 px-4 py-2 rounded hover:bg-gray-100 transition-colors" onclick="window.location.reload()">
+                        Try Again
+                    </button>
+                </div>
             </div>
-        </div>
+            
+            <!-- Excitation Data Overlay -->
+            <div class="absolute top-4 right-4 bg-gray-800/90 backdrop-blur-sm border border-gray-600 rounded-lg p-4 max-w-sm">
+                <h3 class="text-sm font-semibold text-white mb-2">Excitation Data</h3>
+                <div id="excitation-info" class="text-xs text-gray-300 font-mono">
+                    Loading excitation data...
+                </div>
+            </div>
+        </main>
     </div>
 
     <!-- Floating Chart Windows -->
-    <div id="spectrum-floating" class="floating-chart spectrum-chart">
-        <div class="floating-chart-header">
-            <h3>Calculated Absorption Spectrum</h3>
-            <div class="floating-chart-controls">
-                <button class="floating-chart-btn" onclick="closeFloatingChart('spectrum-floating')">&times;</button>
-            </div>
+    <div id="spectrum-floating" class="fixed top-20 right-20 w-[500px] h-[400px] bg-white rounded-lg shadow-2xl border border-gray-600 hidden z-50">
+        <div class="bg-indigo-600 text-white px-6 py-4 rounded-t-lg flex items-center justify-between">
+            <h3 class="font-semibold text-lg">Absorption Spectrum</h3>
+            <button class="text-white hover:text-gray-300 transition-colors text-xl font-bold" onclick="closeFloatingChart('spectrum-floating')">&times;</button>
         </div>
-        <div class="floating-chart-body">
-            <canvas id="spectrum-chart"></canvas>
+        <div class="p-6 bg-white" style="height: calc(100% - 60px);">
+            <canvas id="spectrum-chart" style="width: 100% !important; height: 100% !important;"></canvas>
         </div>
     </div>
 
-    <div id="energy-floating" class="floating-chart energy-chart">
-        <div class="floating-chart-header">
-            <h3>Global Oscillator Strengths</h3>
-            <div class="floating-chart-controls">
-                <button class="floating-chart-btn" onclick="closeFloatingChart('energy-floating')">&times;</button>
-            </div>
+    <div id="energy-floating" class="fixed top-20 right-[560px] w-[500px] h-[400px] bg-white rounded-lg shadow-2xl border border-gray-600 hidden z-50">
+        <div class="bg-indigo-600 text-white px-6 py-4 rounded-t-lg flex items-center justify-between">
+            <h3 class="font-semibold text-lg">Oscillator Strengths</h3>
+            <button class="text-white hover:text-gray-300 transition-colors text-xl font-bold" onclick="closeFloatingChart('energy-floating')">&times;</button>
         </div>
-        <div class="floating-chart-body">
-            <canvas id="energy-chart"></canvas>
+        <div class="p-6 bg-white" style="height: calc(100% - 60px);">
+            <canvas id="energy-chart" style="width: 100% !important; height: 100% !important;"></canvas>
         </div>
     </div>
-
-    <!-- JavaScript -->
-    <script src="{{ url_for('static', filename='js/viewer.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
-    
-    <script>
-        // Global session ID for JavaScript
-        window.sessionId = "{{ session_id }}";
-        
-        // Additional viewer functions
-        function resetView() {
-            if (molecularViewer && molecularViewer.camera) {
-                molecularViewer.camera.position.set(10, 10, 10);
-                molecularViewer.camera.lookAt(0, 0, 0);
-            }
-        }
-        
-        function toggleFullscreen() {
-            const viewerContainer = document.getElementById('viewer-container');
-            if (document.fullscreenElement) {
-                document.exitFullscreen();
-            } else {
-                viewerContainer.requestFullscreen();
-            }
-        }
-        
-        function showSpectrumChart() {
-            const floatingChart = document.getElementById('spectrum-floating');
-            floatingChart.style.display = 'block';
-            // Implementation in charts.js
-            setTimeout(() => createSpectrumChart(), 100); // Small delay for DOM update
-        }
-        
-        function showEnergyEvolution() {
-            const floatingChart = document.getElementById('energy-floating');
-            floatingChart.style.display = 'block';
-            // Implementation in charts.js
-            setTimeout(() => createEnergyChart(), 100); // Small delay for DOM update
-        }
-        
-        function closeFloatingChart(chartId) {
-            document.getElementById(chartId).style.display = 'none';
-        }
-        
-        // Make floating charts draggable
-        function makeDraggable() {
-            const charts = document.querySelectorAll('.floating-chart');
-            
-            charts.forEach(chart => {
-                const header = chart.querySelector('.floating-chart-header');
-                let isDragging = false;
-                let currentX, currentY, initialX, initialY;
-                
-                header.addEventListener('mousedown', function(e) {
-                    if (e.target.tagName === 'BUTTON') return; // Don't drag when clicking buttons
-                    
-                    isDragging = true;
-                    initialX = e.clientX - chart.offsetLeft;
-                    initialY = e.clientY - chart.offsetTop;
-                    
-                    document.addEventListener('mousemove', dragChart);
-                    document.addEventListener('mouseup', stopDragging);
-                });
-                
-                function dragChart(e) {
-                    if (!isDragging) return;
-                    
-                    e.preventDefault();
-                    currentX = e.clientX - initialX;
-                    currentY = e.clientY - initialY;
-                    
-                    // Keep within viewport bounds
-                    const maxX = window.innerWidth - chart.offsetWidth;
-                    const maxY = window.innerHeight - chart.offsetHeight;
-                    
-                    currentX = Math.max(0, Math.min(currentX, maxX));
-                    currentY = Math.max(0, Math.min(currentY, maxY));
-                    
-                    chart.style.left = currentX + 'px';
-                    chart.style.top = currentY + 'px';
-                    chart.style.right = 'auto'; // Override CSS right positioning
-                }
-                
-                function stopDragging() {
-                    isDragging = false;
-                    document.removeEventListener('mousemove', dragChart);
-                    document.removeEventListener('mouseup', stopDragging);
-                }
-            });
-        }
-        
-        function closeModal(modalId) {
-            // Legacy function - now redirects to floating charts
-            if (modalId === 'spectrum-modal') {
-                closeFloatingChart('spectrum-floating');
-            } else if (modalId === 'energy-modal') {
-                closeFloatingChart('energy-floating');
-            }
-        }
-        
-        function exportFrame() {
-            if (molecularViewer && molecularViewer.renderer) {
-                const canvas = molecularViewer.renderer.domElement;
-                const link = document.createElement('a');
-                link.download = `dmabn_frame_${molecularViewer.currentFrame}.png`;
-                link.href = canvas.toDataURL();
-                link.click();
-            }
-        }
-        
-        // Visualization option handlers
-        document.addEventListener('DOMContentLoaded', function() {
-            const showBondsCheckbox = document.getElementById('show-bonds');
-            const showLabelsCheckbox = document.getElementById('show-labels');
-            const backgroundColorPicker = document.getElementById('background-color');
-            
-            if (showBondsCheckbox) {
-                showBondsCheckbox.addEventListener('change', function() {
-                    if (molecularViewer) {
-                        molecularViewer.toggleBonds(this.checked);
-                    }
-                });
-            }
-            
-            if (showLabelsCheckbox) {
-                showLabelsCheckbox.addEventListener('change', function() {
-                    if (molecularViewer) {
-                        molecularViewer.toggleLabels(this.checked);
-                    }
-                });
-            }
-            
-            if (backgroundColorPicker) {
-                backgroundColorPicker.addEventListener('change', function() {
-                    if (molecularViewer && molecularViewer.scene) {
-                        molecularViewer.scene.background = new THREE.Color(this.value);
-                    }
-                });
-            }
-            
-            // Hide loading overlay once everything is initialized
-            setTimeout(function() {
-                const loadingOverlay = document.getElementById('loading-overlay');
-                if (loadingOverlay) {
-                    loadingOverlay.style.display = 'none';
-                }
-            }, 2000);
-            
-            // Initialize draggable functionality for floating charts
-            makeDraggable();
-        });
-        
-        // Modal click outside to close
-        window.onclick = function(event) {
-            const modals = document.querySelectorAll('.modal');
-            modals.forEach(modal => {
-                if (event.target === modal) {
-                    modal.style.display = 'none';
-                }
-            });
-        }
-        
-        // Keyboard shortcuts
-        document.addEventListener('keydown', function(event) {
-            if (!molecularViewer) return;
-            
-            switch(event.key) {
-                case ' ': // Spacebar - play/pause
-                    event.preventDefault();
-                    if (molecularViewer.isPlaying) {
-                        molecularViewer.pause();
-                    } else {
-                        molecularViewer.play();
-                    }
-                    break;
-                case 'ArrowLeft': // Previous frame
-                    event.preventDefault();
-                    molecularViewer.previousFrame();
-                    break;
-                case 'ArrowRight': // Next frame
-                    event.preventDefault();
-                    molecularViewer.nextFrame();
-                    break;
-                case 'r': // Reset view
-                case 'R':
-                    event.preventDefault();
-                    resetView();
-                    break;
-                case 'f': // Fullscreen
-                case 'F':
-                    event.preventDefault();
-                    toggleFullscreen();
-                    break;
-                case 'Escape': // Close floating charts
-                    document.querySelectorAll('.floating-chart').forEach(chart => {
-                        chart.style.display = 'none';
-                    });
-                    break;
-            }
-        });
-        
-        // Update frame info when frame changes
-        document.addEventListener('frameChanged', function(event) {
-            const currentFrameSpan = document.getElementById('current-frame');
-            if (currentFrameSpan && event.detail) {
-                currentFrameSpan.textContent = event.detail.frame + 1;
-            }
-        });
-        
-        // Performance monitoring
-        let frameCount = 0;
-        let lastTime = performance.now();
-        
-        function updateFPS() {
-            frameCount++;
-            const currentTime = performance.now();
-            
-            if (currentTime - lastTime >= 1000) { // Update every second
-                const fps = Math.round(frameCount * 1000 / (currentTime - lastTime));
-                const moleculeInfo = document.getElementById('molecule-info');
-                
-                if (moleculeInfo && molecularViewer && molecularViewer.trajectoryData) {
-                    moleculeInfo.textContent = `${molecularViewer.trajectoryData.length} frames loaded | ${fps} FPS`;
-                }
-                
-                frameCount = 0;
-                lastTime = currentTime;
-            }
-            
-            requestAnimationFrame(updateFPS);
-        }
-        
-        // Start FPS monitoring
-        requestAnimationFrame(updateFPS);
-    </script>
-    
-    {% block extra_scripts %}{% endblock %}
 </body>
 </html>

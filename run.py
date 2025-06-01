@@ -19,10 +19,10 @@ if __name__ == '__main__':
     host = os.environ.get('FLASK_HOST', '0.0.0.0')
     port = int(os.environ.get('FLASK_PORT', 5001))
     
-    print("🧬 Starting DMABN MD Viewer...")
-    print(f"🌐 Server: http://{host}:{port}")
-    print(f"🔧 Debug mode: {debug_mode}")
-    print("📁 Make sure to upload your data files!")
+    print("Starting DMABN MD Viewer...")
+    print(f"Server: http://{host}:{port}")
+    print(f"Debug mode: {debug_mode}")
+    print("Make sure to upload your data files!")
     print("=" * 50)
     
     try:
@@ -33,7 +33,7 @@ if __name__ == '__main__':
             threaded=True
         )
     except KeyboardInterrupt:
-        print("\n👋 Server stopped by user")
+        print("\nServer stopped by user")
     except Exception as e:
-        print(f"❌ Server error: {e}")
+        print(f"Server error: {e}")
         sys.exit(1)

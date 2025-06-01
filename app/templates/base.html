@@ -4,51 +4,185 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}MD Viewer{% endblock %}</title>
-    <!-- CSS -->
-    <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='css/viewer.css') }}" rel="stylesheet">
-    <!--Tailwind CSS-->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
-    {% block extra_css %}{% endblock %}
-    
-    <!-- External Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'molecular-black': '#000000',
+                        'molecular-charcoal': '#363946',
+                        'molecular-gray': '#696773',
+                        'molecular-sage': '#819595',
+                        'molecular-sage-light': '#B1B6A6'
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'slide-up': 'slideUp 0.3s ease-out',
+                        'pulse-slow': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
 </head>
-<body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-brand">
-                <h1>MD Viewer</h1>
-                <p>Molecular Dynamics Viewer and Analysis GUI</p>
+<body class="min-h-screen bg-gradient-to-br from-molecular-charcoal to-molecular-gray text-white">
+    <!-- Navigation Header -->
+    <header class="bg-molecular-charcoal border-b border-molecular-sage">
+        <nav class="mx-auto max-w-7xl px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-lg font-semibold text-white">MD Viewer</h1>
+                </div>
+                <div class="flex gap-6">
+                    <a href="{{ url_for('index') }}" class="text-sm text-white transition-colors">Home</a>
+                    <a href="{{ url_for('viewer') }}" class="text-sm text-molecular-sage-light hover:text-white transition-colors">Viewer</a>
+                </div>
             </div>
-            <div class="nav-links">
-                <a href="{{ url_for('index') }}" class="nav-link">Home</a>
-                <a href="{{ url_for('viewer') }}" class="nav-link">Viewer</a>
-            </div>
-        </div>
-    </nav>
+        </nav>
+    </header>
 
-    <main class="main-content">
+    <!-- Main Content -->
+    <main>
         {% block content %}{% endblock %}
     </main>
 
-    <div id="loading-overlay" class="loading-overlay" style="display: none;">
-        <div class="loading-content">
-            <div class="spinner"></div>
-            <p id="loading-message">Processing...</p>
+    <!-- Footer -->
+    <footer class="bg-molecular-charcoal/80 backdrop-blur-md border-t border-molecular-sage/30">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="grid md:grid-cols-3 gap-8 py-12">
+                <div>
+                    <h4 class="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-molecular-sage/30 rounded-lg flex items-center justify-center">
+                            <span class="text-white font-bold">M</span>
+                        </span>
+                        MD Viewer
+                    </h4>
+                    <p class="text-molecular-sage-light text-sm leading-relaxed">
+                        Molecular dynamics visualization and analysis platform for computational chemistry research.
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-medium text-molecular-sage-light mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" onclick="showDocumentation()" class="text-sm text-gray-300 hover:text-molecular-sage transition-colors duration-200 flex items-center gap-2 cursor-pointer">
+                            <span class="text-molecular-sage">→</span> Documentation
+                        </a></li>
+                        <li><a href="#" onclick="showTutorial()" class="text-sm text-gray-300 hover:text-molecular-sage transition-colors duration-200 flex items-center gap-2 cursor-pointer">
+                            <span class="text-molecular-sage">→</span> Tutorial
+                        </a></li>
+                        <li><a href="#" onclick="showSupport()" class="text-sm text-gray-300 hover:text-molecular-sage transition-colors duration-200 flex items-center gap-2 cursor-pointer">
+                            <span class="text-molecular-sage">→</span> Support
+                        </a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-medium text-molecular-sage-light mb-4">Resources</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" onclick="showPrivacy()" class="text-sm text-gray-300 hover:text-molecular-sage transition-colors duration-200 flex items-center gap-2 cursor-pointer">
+                            <span class="text-molecular-sage">→</span> Privacy Policy
+                        </a></li>
+                        <li><a href="#" onclick="showTerms()" class="text-sm text-gray-300 hover:text-molecular-sage transition-colors duration-200 flex items-center gap-2 cursor-pointer">
+                            <span class="text-molecular-sage">→</span> Terms of Use
+                        </a></li>
+                        <li><a href="#" onclick="showContact()" class="text-sm text-gray-300 hover:text-molecular-sage transition-colors duration-200 flex items-center gap-2 cursor-pointer">
+                            <span class="text-molecular-sage">→</span> Contact
+                        </a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="text-center py-6 border-t border-molecular-sage/20">
+                <p class="text-molecular-sage-light text-sm">
+                    &copy; 2025 MD Viewer. Jessica Ramirez.
+                </p>
+            </div>
         </div>
-    </div>
+    </footer>
 
-    <div id="error-toast" class="error-toast" style="display: none;">
-        <div class="toast-content">
-            <span class="toast-message"></span>
-            <button class="toast-close">&times;</button>
-        </div>
-    </div>
+    <!-- Base JavaScript -->
+    <script>
+        // Notification system
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full`;
+            
+            const typeClasses = {
+                'success': 'bg-green-500/90 text-white border border-green-400',
+                'error': 'bg-red-500/90 text-white border border-red-400',
+                'info': 'bg-molecular-sage/90 text-white border border-molecular-sage-light',
+                'warning': 'bg-yellow-500/90 text-black border border-yellow-400'
+            };
+            
+            notification.className += ` ${typeClasses[type] || typeClasses.info}`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Slide in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Slide out and remove
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
 
-    <!-- JavaScript -->
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+        function showSuccess(message) { showNotification(message, 'success'); }
+        function showError(message) { showNotification(message, 'error'); }
+        function showInfo(message) { showNotification(message, 'info'); }
+        function showWarning(message) { showNotification(message, 'warning'); }
+
+        // Loading state management
+        let loadingElement = null;
+        
+        function showLoading(message = 'Loading...') {
+            hideLoading(); // Remove any existing loading
+            
+            loadingElement = document.createElement('div');
+            loadingElement.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center';
+            loadingElement.innerHTML = `
+                <div class="bg-molecular-charcoal/90 rounded-xl p-8 border border-molecular-sage/30 flex items-center gap-4">
+                    <div class="w-6 h-6 border-2 border-molecular-sage border-t-transparent rounded-full animate-spin"></div>
+                    <span class="text-white font-medium">${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(loadingElement);
+        }
+        
+        function hideLoading() {
+            if (loadingElement) {
+                loadingElement.remove();
+                loadingElement = null;
+            }
+        }
+
+        // Footer link functions
+        function showDocumentation() { showInfo('Documentation will be added soon'); }
+        function showTutorial() { showInfo('Tutorial will be added soon'); }
+        function showSupport() { showInfo('For support, please contact: jramz1897@gmail.com'); }
+        function showPrivacy() { showInfo('Privacy policy: We do not store your data permanently. All uploads are session-based and automatically deleted after 24 hours.'); }
+        function showTerms() { showInfo('Terms: This tool is provided for research purposes.'); }
+        function showContact() { showInfo('Contact: jramz1897@gmail.com'); }
+    </script>
+    
     {% block extra_js %}{% endblock %}
 </body>
 </html>

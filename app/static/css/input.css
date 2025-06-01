@@ -1,3 +1,13 @@
 @tailwind base;
-@tailwind components;
+@tailwind components; 
 @tailwind utilities;
+
+@layer base {
+    :root {
+        --molecular-black: #000000;
+        --molecular-charcoal: #363946;
+        --molecular-gray: #696773;
+        --molecular-sage: #819595;
+        --molecular-sage-light: #B1B6A6;
+    }
+}

@@ -460,6 +460,72 @@ def storage_info():
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+@app.route('/api/examples/<example_id>', methods=['GET'])
+def load_example_data(example_id):
+    """Load pre-defined sample data (e.g., DMABNvacuum)"""
+    try:
+        if example_id != 'DMABNvacuum':
+            return jsonify({'success': False, 'error': 'Unknown example dataset'}), 400
+
+        root_dir = os.path.dirname(os.path.abspath(__file__))
+        source_path = os.path.join(root_dir, 'data', 'sample', 'DMABNvacuum')
+
+        if not os.path.exists(source_path):
+            return jsonify({'success': False, 'error': 'Sample data not found'}), 404
+
+        session_id = str(uuid.uuid4())
+        session['session_id'] = session_id
+        target_folder = os.path.join(app.config['UPLOAD_FOLDER'], session_id)
+        os.makedirs(target_folder, exist_ok=True)
+
+        # Copy sample files to upload folder
+        for fname in os.listdir(source_path):
+            src = os.path.join(source_path, fname)
+            dst = os.path.join(target_folder, fname)
+            if os.path.isfile(src):
+                with open(src, 'rb') as fsrc, open(dst, 'wb') as fdst:
+                    fdst.write(fsrc.read())
+
+        # Manually trigger processing logic
+        files = {f: os.path.join(target_folder, f) for f in os.listdir(target_folder)}
+
+        trajectory_data = None
+        excitation_data = None
+
+        if 'coors.xyz' in files:
+            trajectory_data = trajectory_processor.read_trajectory(files['coors.xyz'])
+        else:
+            return jsonify({'success': False, 'error': 'Required coors.xyz not found'}), 400
+
+        if 's1.dat' in files and 's2.dat' in files:
+            fail_file = files.get('fail.dat')
+            excitation_data = excitation_processor.process_excitation_data(
+                files['s1.dat'], files['s2.dat'], fail_file
+            )
+
+        analysis_results = {}
+        if trajectory_data:
+            analysis_results['trajectory_stats'] = trajectory_processor.get_trajectory_statistics(trajectory_data)
+        if excitation_data:
+            analysis_results['excitation_stats'] = excitation_processor.get_excitation_statistics(excitation_data)
+
+        processed_file = os.path.join(app.config['PROCESSED_FOLDER'], f"{session_id}_processed.json")
+        with open(processed_file, 'w') as f:
+            json.dump({
+                'trajectory': trajectory_data,
+                'excitation': excitation_data,
+                'analysis': analysis_results,
+                'processed_at': datetime.now().isoformat()
+            }, f, default=str)
+
+        return jsonify({'success': True, 'session_id': session_id})
+
+    except Exception as e:
+        app.logger.error(f"Example loading error: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 
 @app.errorhandler(404)
 def not_found(error):
