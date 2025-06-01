@@ -2,6 +2,8 @@
 
 A web application for visualizing and analyzing molecular dynamics simulations with real-time 3D rendering and interactive data visualization.
 
+Actively deployed here: https://md-viewer-production.up.railway.app/
+
 ![MD Viewer Interface](screenshots/viewer-interface.png)
 
 [![Live Demo](https://img.shields.io/badge/Live_Demo-Railway-0B0D0E?style=flat&logo=railway&logoColor=white)](https://md-viewer-production.up.railway.app)
