@@ -1,4 +1,4 @@
-# app/models/excitation.py - Excitation data processing
+# Excitation data processing
 
 import numpy as np
 from typing import List, Dict, Optional, Set
@@ -11,7 +11,7 @@ class ExcitationProcessor:
         self.excitation_interval_fs = 2.0    # 2 fs interval (NOT 2 ps!)
     
     def process_excitation_data(self, s1_file: str, s2_file: str, 
-                              fail_file: Optional[str] = None) -> List[Dict]:
+                                fail_file: Optional[str] = None) -> List[Dict]:
         """
         Process S1 and S2 excitation data files
         
@@ -24,17 +24,17 @@ class ExcitationProcessor:
             List of successful excitation calculations with metadata
         """
         try:
-            print(f"📊 Processing excitation data...")
-            print(f"📄 S1 file: {s1_file}")
-            print(f"📄 S2 file: {s2_file}")
-            print(f"📄 Fail file: {fail_file if fail_file else 'None'}")
+            print(f"Processing excitation data...")
+            print(f"S1 file: {s1_file}")
+            print(f"S2 file: {s2_file}")
+            print(f"Fail file: {fail_file if fail_file else 'None'}")
             
             # Read excitation data
             s1_data = np.loadtxt(s1_file)
             s2_data = np.loadtxt(s2_file)
             
-            print(f"📈 S1 data shape: {s1_data.shape}")
-            print(f"📈 S2 data shape: {s2_data.shape}")
+            print(f"S1 data shape: {s1_data.shape}")
+            print(f"S2 data shape: {s2_data.shape}")
             
             # Read failed calculations
             failed_snapshots = self.read_failed_calculations(fail_file)
@@ -44,12 +44,12 @@ class ExcitationProcessor:
                 s1_data, s2_data, failed_snapshots
             )
             
-            print(f"✅ Processed {len(excitation_data)} successful excitation calculations")
+            print(f"Processed {len(excitation_data)} successful excitation calculations")
             
             return excitation_data
             
         except Exception as e:
-            print(f"❌ Error processing excitation data: {e}")
+            print(f"Error processing excitation data: {e}")
             raise
     
     def read_failed_calculations(self, fail_file: Optional[str]) -> Set[int]:
@@ -57,7 +57,7 @@ class ExcitationProcessor:
         failed_snapshots = set()
         
         if not fail_file:
-            print("📝 No fail.dat file - assuming all calculations succeeded")
+            print("No fail.dat file - assuming all calculations succeeded")
             return failed_snapshots
         
         try:
@@ -67,17 +67,17 @@ class ExcitationProcessor:
                     if line and line.isdigit():
                         failed_snapshots.add(int(line))
             
-            print(f"⚠️ Found {len(failed_snapshots)} failed calculations")
+            print(f"Found {len(failed_snapshots)} failed calculations")
             
         except FileNotFoundError:
-            print("📝 No fail.dat file found - assuming all calculations succeeded")
+            print("No fail.dat file found - assuming all calculations succeeded")
         except Exception as e:
-            print(f"⚠️ Error reading fail.dat: {e}")
+            print(f"Error reading fail.dat: {e}")
         
         return failed_snapshots
     
     def create_excitation_dataset(self, s1_data: np.ndarray, s2_data: np.ndarray,
-                                failed_snapshots: Set[int]) -> List[Dict]:
+                            failed_snapshots: Set[int]) -> List[Dict]:
         """Create structured excitation dataset"""
         
         excitation_data = []
@@ -91,12 +91,19 @@ class ExcitationProcessor:
             snapshot_time_fs = self.equilibration_time_fs + i * self.excitation_interval_fs
             snapshot_time_ps = snapshot_time_fs / 1000.0
             
-            # Extract S1 and S2 data
+            # Extract S1 data (all 5 columns)
             s1_energy = float(s1_data[i][0])  # eV
             s1_oscillator = float(s1_data[i][1])  # oscillator strength
+            s1_dipole_x = float(s1_data[i][2]) if s1_data.shape[1] > 2 else 0.0  # dipole x
+            s1_dipole_y = float(s1_data[i][3]) if s1_data.shape[1] > 3 else 0.0  # dipole y
+            s1_dipole_z = float(s1_data[i][4]) if s1_data.shape[1] > 4 else 0.0  # dipole z
             
+            # Extract S2 data (all 5 columns)
             s2_energy = float(s2_data[i][0])  # eV
             s2_oscillator = float(s2_data[i][1])  # oscillator strength
+            s2_dipole_x = float(s2_data[i][2]) if s2_data.shape[1] > 2 else 0.0  # dipole x
+            s2_dipole_y = float(s2_data[i][3]) if s2_data.shape[1] > 3 else 0.0  # dipole y
+            s2_dipole_z = float(s2_data[i][4]) if s2_data.shape[1] > 4 else 0.0  # dipole z
             
             excitation_entry = {
                 'calculation_index': i,
@@ -104,8 +111,14 @@ class ExcitationProcessor:
                 'time_ps': snapshot_time_ps,
                 's1_energy': s1_energy,
                 's1_oscillator': s1_oscillator,
+                's1_dipole_x': s1_dipole_x,
+                's1_dipole_y': s1_dipole_y,
+                's1_dipole_z': s1_dipole_z,
                 's2_energy': s2_energy,
                 's2_oscillator': s2_oscillator,
+                's2_dipole_x': s2_dipole_x,
+                's2_dipole_y': s2_dipole_y,
+                's2_dipole_z': s2_dipole_z,
                 'energy_gap': s2_energy - s1_energy,  # S2-S1 gap
                 'total_oscillator': s1_oscillator + s2_oscillator
             }
@@ -114,8 +127,9 @@ class ExcitationProcessor:
         
         if excitation_data:
             time_range = [excitation_data[0]['time_ps'], excitation_data[-1]['time_ps']]
-            print(f"⏱️ Excitation time range: {time_range[0]:.1f} - {time_range[1]:.1f} ps")
-            print(f"🎯 Time interval: {self.excitation_interval_fs} fs between calculations")
+            print(f"Excitation time range: {time_range[0]:.1f} - {time_range[1]:.1f} ps")
+            print(f"Time interval: {self.excitation_interval_fs} fs between calculations")
+            print(f"Dipole moment data included: {s1_data.shape[1]} columns per file")
         
         return excitation_data
     
@@ -218,8 +232,8 @@ class ExcitationProcessor:
         }
     
     def find_excitation_at_time(self, excitation_data: List[Dict], 
-                              target_time_fs: float,
-                              tolerance_fs: float = 100.0) -> Optional[Dict]:
+                                target_time_fs: float,
+                                tolerance_fs: float = 100.0) -> Optional[Dict]:
         """Find excitation data closest to a target time"""
         
         best_match = None
@@ -268,7 +282,7 @@ class ExcitationProcessor:
             correlations['gap_s2_energy'] = float(np.corrcoef(energy_gaps, s2_energies)[0, 1])
             
         except Exception as e:
-            print(f"⚠️ Error calculating correlations: {e}")
+            print(f"Error calculating correlations: {e}")
         
         return correlations
     
@@ -278,9 +292,10 @@ class ExcitationProcessor:
         if not excitation_data:
             return ""
         
-        # CSV header
+        # CSV header with dipole moments
         csv_lines = [
-            "calculation_index,time_fs,time_ps,s1_energy_eV,s1_oscillator,s2_energy_eV,s2_oscillator,energy_gap_eV,total_oscillator"
+            "calculation_index,time_fs,time_ps,s1_energy_eV,s1_oscillator,s1_dipole_x,s1_dipole_y,s1_dipole_z,"
+            "s2_energy_eV,s2_oscillator,s2_dipole_x,s2_dipole_y,s2_dipole_z,energy_gap_eV,total_oscillator"
         ]
         
         # Data rows
@@ -291,8 +306,14 @@ class ExcitationProcessor:
                 f"{data['time_ps']:.6f},"
                 f"{data['s1_energy']:.6f},"
                 f"{data['s1_oscillator']:.6f},"
+                f"{data.get('s1_dipole_x', 0.0):.6f},"
+                f"{data.get('s1_dipole_y', 0.0):.6f},"
+                f"{data.get('s1_dipole_z', 0.0):.6f},"
                 f"{data['s2_energy']:.6f},"
                 f"{data['s2_oscillator']:.6f},"
+                f"{data.get('s2_dipole_x', 0.0):.6f},"
+                f"{data.get('s2_dipole_y', 0.0):.6f},"
+                f"{data.get('s2_dipole_z', 0.0):.6f},"
                 f"{data['energy_gap']:.6f},"
                 f"{data['total_oscillator']:.6f}"
             )

@@ -1,10 +1,11 @@
 # app/routes/upload.py - File upload handling
 
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify, session, current_app
 import os
 import uuid
 from datetime import datetime
 from werkzeug.utils import secure_filename
+import json
 
 upload_bp = Blueprint('upload', __name__, url_prefix='/api')
 
@@ -16,7 +17,7 @@ UPLOAD_FOLDER = 'data/uploads'
 def allowed_file(filename):
     """Check if file extension is allowed"""
     return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def validate_file_size(file):
     """Validate file size"""
@@ -53,6 +54,12 @@ def upload_files():
         
         uploaded_files = []
         errors = []
+
+        # Get molecule type from form data
+        molecule_type = request.form.get('molecule_type', 'generic')
+        session['molecule_type'] = molecule_type
+
+        print(f"Upload: Molecule type selected: {molecule_type}")
         
         # Process each file
         for file in files:
@@ -84,11 +91,11 @@ def upload_files():
                     'path': file_path
                 })
                 
-                print(f"✅ Uploaded: {filename} ({file_size} bytes)")
+                print(f"Uploaded: {filename} ({file_size} bytes)")
                 
             except Exception as e:
                 errors.append(f"Failed to save {filename}: {str(e)}")
-                print(f"❌ Upload error for {filename}: {e}")
+                print(f"Upload error for {filename}: {e}")
         
         # Check if we have required files
         filenames = [f['filename'] for f in uploaded_files]
@@ -109,18 +116,19 @@ def upload_files():
             'uploaded_files': uploaded_files,
             'file_count': len(uploaded_files),
             'total_size': sum(f['size'] for f in uploaded_files),
-            'timestamp': datetime.now().isoformat()
+            'timestamp': datetime.now().isoformat(),
+            'molecule_type': molecule_type
         }
         
         if errors:
             response_data['warnings'] = errors
         
-        print(f"🎉 Upload successful: {len(uploaded_files)} files, session {session_id}")
+        print(f"Upload successful: {len(uploaded_files)} files, session {session_id}")
         
         return jsonify(response_data)
         
     except Exception as e:
-        print(f"❌ Upload error: {e}")
+        print(f"Upload error: {e}")
         return jsonify({
             'success': False,
             'error': f'Upload failed: {str(e)}'
@@ -241,10 +249,52 @@ def cleanup_old_uploads(max_age_hours=24):
                         os.remove(processed_file)
                     
                     cleaned_count += 1
-                    print(f"🧹 Cleaned old upload: {session_dir}")
+                    print(f"Cleaned old upload: {session_dir}")
                     
                 except Exception as e:
-                    print(f"⚠️ Failed to clean {session_dir}: {e}")
+                    print(f"Failed to clean {session_dir}: {e}")
     
     if cleaned_count > 0:
-        print(f"🧹 Cleanup complete: {cleaned_count} old uploads removed")
+        print(f"Cleanup complete: {cleaned_count} old uploads removed")
+
+@upload_bp.route('/data/<session_id>', methods=['GET'])
+def get_session_data(session_id):
+    """
+    Get trajectory and excitation data for a session.
+    This is what the viewer calls to load basic data.
+    """
+    print(f"🔍 DEBUG: get_session_data called with session_id: {session_id}")
+    try:
+        processed_dir = current_app.config.get('PROCESSED_FOLDER', 'data/processed')
+        session_file = os.path.join(processed_dir, f"{session_id}_processed.json")
+        
+        if not os.path.exists(session_file):
+            return jsonify({
+                'success': False,
+                'error': 'Session data not found'
+            }), 404
+        
+        # Load cached data
+        with open(session_file, 'r') as f:
+            cached_data = json.load(f)
+        
+        print(f"Cache file contents keys: {list(cached_data.keys())}")
+        print(f"Molecule type in cache: {cached_data.get('molecule_type', 'NOT FOUND')}")
+        
+        # Get molecule type from the cached data
+        molecule_type = cached_data.get('molecule_type', 'generic')
+        
+        return jsonify({
+            'success': True,
+            'trajectory': cached_data.get('trajectory', []),
+            'excitation': cached_data.get('excitation', []),
+            'molecule_type': molecule_type,
+            'metadata': cached_data.get('metadata', {})
+        })
+        
+    except Exception as e:
+        print(f"Error retrieving session data: {e}")
+        return jsonify({
+            'success': False,
+            'error': f'Failed to retrieve data: {str(e)}'
+        }), 500

@@ -1,4 +1,4 @@
-# app/models/analysis.py - Data analysis functions
+# Data analysis functions
 
 import numpy as np
 from typing import List, Dict, Tuple, Optional
@@ -34,7 +34,7 @@ class MolecularAnalysis:
         return weighted_coords / total_mass
     
     def calculate_rmsd(self, coords1: np.ndarray, coords2: np.ndarray, 
-                      atom_indices: Optional[List[int]] = None) -> float:
+                        atom_indices: Optional[List[int]] = None) -> float:
         """Calculate RMSD between two coordinate sets"""
         
         if atom_indices:
@@ -65,7 +65,7 @@ class MolecularAnalysis:
         return distance_matrix
     
     def find_bonds(self, atoms: List[str], coords: np.ndarray, 
-                   max_bond_distance: float = 1.8) -> List[Tuple[int, int, float]]:
+                    max_bond_distance: float = 1.8) -> List[Tuple[int, int, float]]:
         """Find bonds based on distance criteria"""
         bonds = []
         
@@ -215,9 +215,9 @@ class MolecularAnalysis:
         return stats
     
     def generate_absorption_spectrum(self, excitation_data: List[Dict],
-                                   energy_min: float = 2.0, energy_max: float = 7.0,
-                                   energy_points: int = 1000,
-                                   gaussian_width: float = 0.15) -> Dict:
+                                    energy_min: float = 2.0, energy_max: float = 7.0,
+                                    energy_points: int = 1000,
+                                    gaussian_width: float = 0.15) -> Dict:
         """Generate time-averaged absorption spectrum"""
         
         energy_range = np.linspace(energy_min, energy_max, energy_points)
@@ -284,7 +284,7 @@ class MolecularAnalysis:
         return ''.join(formula_parts)
     
     def analyze_molecular_motion(self, trajectory_frames: List[Dict],
-                               atom_indices: Optional[List[int]] = None) -> Dict:
+                                atom_indices: Optional[List[int]] = None) -> Dict:
         """Analyze molecular motion patterns"""
         
         if len(trajectory_frames) < 2:

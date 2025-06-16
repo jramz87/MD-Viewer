@@ -181,6 +181,25 @@
                 <p class="text-molecular-sage-light mb-8 hover:text-white transition-colors duration-300">
                     Drop your files here or click to select
                 </p>
+
+                <!-- Molecule Type Selection -->
+                <div class="mb-6">
+                    <label for="molecule-type" class="block text-sm font-medium text-molecular-sage-light mb-2">
+                        Molecule Type (for specialized analysis)
+                    </label>
+                    <select 
+                        id="molecule-type" 
+                        name="molecule_type"
+                        class="w-full bg-molecular-charcoal/60 border border-molecular-sage/30 rounded-lg px-4 py-3 text-white focus:border-molecular-sage focus:ring-2 focus:ring-molecular-sage/20 transition-all duration-300"
+                    >
+                        <option value="generic">Generic Molecule</option>
+                        <option value="dmabn">DMABN (4-(dimethylamino)benzonitrile)</option>
+                        <option value="future_molecule" disabled>Other molecules (coming soon)</option>
+                    </select>
+                    <p class="text-xs text-molecular-sage-light mt-1">
+                        Select DMABN for specialized geometry analysis including twist angles and donor-acceptor coupling
+                    </p>
+                </div>
                 
                 <div class="bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-xl p-8 mb-8 border border-molecular-sage/30 hover:border-molecular-sage/50 transition-all duration-300 shadow-lg text-left">
                     <h4 class="text-lg font-semibold text-white mb-6 flex items-center gap-3">
@@ -330,26 +349,6 @@
                 }
             });
         }
-    }
-    
-    function startUploadProcess(files) {
-        // Validate that coors.xyz is present
-        const hasRequiredFile = files.some(file => file.name.toLowerCase() === 'coors.xyz');
-        
-        if (!hasRequiredFile) {
-            showError('Error: coors.xyz file is required! Please select the required trajectory file.');
-            return;
-        }
-        
-        // Hide initial upload area and show status container
-        document.getElementById('initialUploadArea').classList.add('hidden');
-        document.getElementById('uploadStatusContainer').classList.remove('hidden');
-        
-        // Update file checkboxes based on uploaded files
-        updateFileCheckboxes(files);
-        
-        // Start the upload simulation
-        simulateUploadProcess();
     }
     
     function updateFileCheckboxes(files) {

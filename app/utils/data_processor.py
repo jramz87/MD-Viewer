@@ -1,4 +1,4 @@
-# app/utils/data_processor.py - Data processing utilities for web viewer
+# Data processing utilities for web viewer
 
 import json
 import csv
@@ -54,13 +54,13 @@ class DataProcessor:
         if not trajectory_data:
             return []
         
-        print(f"🎬 Optimizing trajectory: {len(trajectory_data)} frames")
+        print(f"Optimizing trajectory: {len(trajectory_data)} frames")
         
         # If too many frames, sample evenly
         if len(trajectory_data) > self.max_trajectory_frames:
             step = len(trajectory_data) // self.max_trajectory_frames
             trajectory_data = trajectory_data[::step]
-            print(f"📉 Downsampled to {len(trajectory_data)} frames")
+            print(f"Downsampled to {len(trajectory_data)} frames")
         
         # Convert to web-friendly format
         optimized_frames = []
@@ -76,7 +76,7 @@ class DataProcessor:
             }
             optimized_frames.append(optimized_frame)
         
-        print(f"✅ Trajectory optimization complete: {len(optimized_frames)} frames")
+        print(f"Trajectory optimization complete: {len(optimized_frames)} frames")
         return optimized_frames
     
     def optimize_excitation_for_web(self, excitation_data: List[Dict]) -> List[Dict]:
@@ -91,7 +91,7 @@ class DataProcessor:
         if len(excitation_data) > self.max_excitation_points:
             step = len(excitation_data) // self.max_excitation_points
             excitation_data = excitation_data[::step]
-            print(f"📉 Downsampled to {len(excitation_data)} points")
+            print(f"Downsampled to {len(excitation_data)} points")
         
         # Ensure all required fields are present and properly formatted
         optimized_excitation = []
@@ -112,12 +112,12 @@ class DataProcessor:
             }
             optimized_excitation.append(optimized_point)
         
-        print(f"✅ Excitation optimization complete: {len(optimized_excitation)} points")
+        print(f"Excitation optimization complete: {len(optimized_excitation)} points")
         return optimized_excitation
     
     def prepare_viewer_metadata(self, trajectory: List[Dict], 
-                              excitation: List[Dict], 
-                              original_metadata: Dict) -> Dict:
+                            excitation: List[Dict], 
+                            original_metadata: Dict) -> Dict:
         """Prepare metadata for viewer"""
         
         viewer_metadata = {
@@ -215,7 +215,7 @@ class DataProcessor:
                 for i, atom in enumerate(frame['atoms']):
                     coords = frame['coords'][i]
                     output.write(f"{frame_num},{time_fs:.2f},{time_ps:.6f},{atom},"
-                               f"{coords[0]:.6f},{coords[1]:.6f},{coords[2]:.6f}\n")
+                                f"{coords[0]:.6f},{coords[1]:.6f},{coords[2]:.6f}\n")
         
         # Export excitation data
         if data.get('excitation'):
@@ -225,10 +225,10 @@ class DataProcessor:
             
             for exc in data['excitation']:
                 output.write(f"{exc['calculation_index']},{exc['time_fs']:.2f},"
-                           f"{exc['time_ps']:.6f},{exc['s1_energy']:.6f},"
-                           f"{exc['s1_oscillator']:.6f},{exc['s2_energy']:.6f},"
-                           f"{exc['s2_oscillator']:.6f},{exc['energy_gap']:.6f},"
-                           f"{exc['total_oscillator']:.6f}\n")
+                            f"{exc['time_ps']:.6f},{exc['s1_energy']:.6f},"
+                            f"{exc['s1_oscillator']:.6f},{exc['s2_energy']:.6f},"
+                            f"{exc['s2_oscillator']:.6f},{exc['energy_gap']:.6f},"
+                            f"{exc['total_oscillator']:.6f}\n")
         
         return output.getvalue()
     
@@ -326,3 +326,150 @@ class DataProcessor:
         )
         
         return validation
+
+def optimize_geometry_for_web(self, geometry_data: List[Dict]) -> List[Dict]:
+    """Optimize DMABN geometry data for web performance"""
+    
+    if not geometry_data:
+        return []
+    
+    print(f"Optimizing DMABN geometry: {len(geometry_data)} frames")
+    
+    # If too many frames, sample evenly
+    if len(geometry_data) > self.max_trajectory_frames:
+        step = len(geometry_data) // self.max_trajectory_frames
+        geometry_data = geometry_data[::step]
+        print(f"Downsampled to {len(geometry_data)} frames")
+    
+    # Convert to web-friendly format
+    optimized_geometry = []
+    
+    for i, frame in enumerate(geometry_data):
+        optimized_frame = {
+            'frame_number': frame.get('frame_number', i),
+            'time_fs': float(frame['time_fs']),
+            'time_ps': float(frame['time_ps']),
+            'twist_angle': float(frame.get('twist_angle', 0)),
+            'ring_planarity': float(frame.get('ring_planarity', 0)),
+            'ring_nitrile_angle': float(frame.get('ring_nitrile_angle', 0)),
+            'donor_acceptor_distance': float(frame.get('donor_acceptor_distance', 0)),
+            'amino_pyramidalization': float(frame.get('amino_pyramidalization', 0)),
+            'analysis_failed': frame.get('analysis_failed', False)
+        }
+        optimized_geometry.append(optimized_frame)
+    
+    print(f"DMABN geometry optimization complete: {len(optimized_geometry)} frames")
+    return optimized_geometry
+
+def prepare_dmabn_viewer_data(self, cached_data: Dict) -> Dict:
+    """
+    Prepare DMABN-specific data for web viewer consumption
+    
+    Args:
+        cached_data: Raw processed data from cache including DMABN analysis
+        
+    Returns:
+        Optimized data structure for web viewer with geometry analysis
+    """
+    try:
+        # Get standard viewer data
+        viewer_data = self.prepare_for_viewer(cached_data)
+        
+        # Add DMABN geometry analysis if available
+        dmabn_analysis = cached_data.get('dmabn_analysis')
+        if dmabn_analysis:
+            # Optimize geometry data for web
+            optimized_geometry = self.optimize_geometry_for_web(
+                dmabn_analysis['geometry_data']
+            )
+            
+            viewer_data['dmabn_geometry'] = optimized_geometry
+            viewer_data['fragment_mapping'] = dmabn_analysis['fragment_mapping']
+            
+            # Add geometry-specific metadata
+            geometry_metadata = self.prepare_geometry_metadata(
+                optimized_geometry, dmabn_analysis['metadata']
+            )
+            viewer_data['metadata']['geometry_info'] = geometry_metadata
+            
+            print(f"DMABN viewer data prepared with {len(optimized_geometry)} geometry frames")
+        
+        return viewer_data
+        
+    except Exception as e:
+        print(f"Error preparing DMABN viewer data: {e}")
+        raise
+
+def prepare_geometry_metadata(self, geometry_data: List[Dict], 
+                            analysis_metadata: Dict) -> Dict:
+    """Prepare geometry-specific metadata for viewer"""
+    
+    geometry_metadata = {
+        'analysis_type': 'DMABN_geometry',
+        'geometry_frames': len(geometry_data),
+        'has_geometry_analysis': len(geometry_data) > 0,
+        'parameters': [
+            'twist_angle', 'ring_planarity', 'ring_nitrile_angle',
+            'donor_acceptor_distance', 'amino_pyramidalization'
+        ]
+    }
+    
+    # Time information for geometry data
+    if geometry_data:
+        geometry_metadata['time_info'] = {
+            'geometry_time_range_fs': [geometry_data[0]['time_fs'], geometry_data[-1]['time_fs']],
+            'geometry_time_range_ps': [geometry_data[0]['time_ps'], geometry_data[-1]['time_ps']]
+        }
+    
+    # Parameter statistics
+    if 'parameter_statistics' in analysis_metadata:
+        geometry_metadata['parameter_statistics'] = analysis_metadata['parameter_statistics']
+    
+    # Key frames information
+    if 'key_frames' in analysis_metadata:
+        geometry_metadata['key_frames'] = analysis_metadata['key_frames']
+    
+    # Fragment mapping
+    if 'fragment_mapping' in analysis_metadata:
+        geometry_metadata['fragment_mapping'] = analysis_metadata['fragment_mapping']
+    
+    return geometry_metadata
+
+def to_geometry_csv(self, geometry_data: List[Dict]) -> str:
+    """Export DMABN geometry data to CSV format"""
+    
+    if not geometry_data:
+        return ""
+    
+    output = io.StringIO()
+    
+    # Export geometry data
+    output.write("# DMABN Geometry Analysis Data\n")
+    output.write("frame_number,time_fs,time_ps,twist_angle_deg,ring_planarity_A,"
+                "ring_nitrile_angle_deg,donor_acceptor_distance_A,amino_pyramidalization_deg\n")
+    
+    for frame in geometry_data:
+        output.write(f"{frame['frame_number']},{frame['time_fs']:.2f},"
+                    f"{frame['time_ps']:.6f},{frame['twist_angle']:.4f},"
+                    f"{frame['ring_planarity']:.6f},{frame['ring_nitrile_angle']:.4f},"
+                    f"{frame['donor_acceptor_distance']:.6f},"
+                    f"{frame['amino_pyramidalization']:.4f}\n")
+    
+    return output.getvalue()
+
+def calculate_geometry_data_size(self, geometry_data: List[Dict]) -> Dict[str, float]:
+    """Calculate approximate geometry data sizes"""
+    
+    sizes = {
+        'geometry_mb': 0,
+        'estimated_points': len(geometry_data) if geometry_data else 0
+    }
+    
+    # Estimate geometry size
+    if geometry_data:
+        n_points = len(geometry_data)
+        # Each point has ~7 float values * 8 bytes + overhead
+        geometry_bytes = n_points * (7 * 8 + 30)  # 30 bytes overhead per point
+        sizes['geometry_mb'] = round(geometry_bytes / (1024 * 1024), 3)
+    
+    return sizes

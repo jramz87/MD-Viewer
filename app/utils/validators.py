@@ -1,4 +1,4 @@
-# app/utils/validators.py - Input validation utilities
+# Input validation utilities
 
 import os
 import re

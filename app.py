@@ -22,6 +22,7 @@ from app.models.trajectory import TrajectoryProcessor
 from app.models.excitation import ExcitationProcessor
 from app.models.analysis import MolecularAnalysis
 from app.utils.file_parser import FileParser
+from app.routes.dmabn_analysis import dmabn_bp
 
 # Configuration
 class Config:
@@ -61,6 +62,7 @@ def validate_file(file):
 app = Flask(__name__, template_folder='app/templates', static_folder='app/static')
 app.secret_key = 'toto'
 app.config.from_object(Config)
+app.register_blueprint(dmabn_bp)
 
 # Timeout configurations
 app.config['UPLOAD_TIMEOUT'] = 600  # 10 minutes
@@ -142,6 +144,11 @@ def upload_files():
         # Generate unique session ID
         session_id = str(uuid.uuid4())
         session['session_id'] = session_id
+
+        # Capture molecule type from form data
+        molecule_type = request.form.get('molecule_type', 'generic')
+        session['molecule_type'] = molecule_type
+        print(f"Upload: Molecule type selected: {molecule_type}")
         
         # Create session folder
         session_folder = os.path.join(app.config['UPLOAD_FOLDER'], session_id)
@@ -194,6 +201,7 @@ def upload_files():
             'success': True,
             'session_id': session_id,
             'files': uploaded_files,
+            'molecule_type': molecule_type,
             'message': f'Successfully uploaded {len(uploaded_files)} files'
         })
         
@@ -248,11 +256,16 @@ def process_data():
         
         # Cache processed data
         processed_file = os.path.join(app.config['PROCESSED_FOLDER'], f"{session_id}_processed.json")
+        
+        # Get molecule type from session
+        molecule_type = session.get('molecule_type', 'generic')
+
         with open(processed_file, 'w') as f:
             json.dump({
                 'trajectory': trajectory_data,
                 'excitation': excitation_data,
                 'analysis': analysis_results,
+                'molecule_type': molecule_type,
                 'processed_at': datetime.now().isoformat()
             }, f, default=str)
         
@@ -476,6 +489,7 @@ def load_example_data(example_id):
 
         session_id = str(uuid.uuid4())
         session['session_id'] = session_id
+        session['molecule_type'] = 'dmabn'  # Set molecule type in session
         target_folder = os.path.join(app.config['UPLOAD_FOLDER'], session_id)
         os.makedirs(target_folder, exist_ok=True)
 
@@ -516,6 +530,7 @@ def load_example_data(example_id):
                 'trajectory': trajectory_data,
                 'excitation': excitation_data,
                 'analysis': analysis_results,
+                'molecule_type': 'dmabn',  # ADD THIS LINE
                 'processed_at': datetime.now().isoformat()
             }, f, default=str)
 
@@ -524,8 +539,6 @@ def load_example_data(example_id):
     except Exception as e:
         app.logger.error(f"Example loading error: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
-
-
 
 @app.errorhandler(404)
 def not_found(error):
@@ -602,5 +615,5 @@ start_daily_cleanup()
 
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get('PORT', 5001))
     app.run(host='0.0.0.0', port=port, debug=False)

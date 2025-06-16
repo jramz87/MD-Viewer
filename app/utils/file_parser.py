@@ -1,4 +1,4 @@
-# app/utils/file_parser.py - File parsing utilities
+# File parsing utilities
 
 import os
 import numpy as np

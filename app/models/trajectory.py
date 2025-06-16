@@ -1,4 +1,4 @@
-# app/models/trajectory.py - Trajectory data processing
+# Trajectory data processing
 
 import numpy as np
 from typing import List, Dict, Optional
@@ -28,8 +28,8 @@ class TrajectoryProcessor:
             i = 0
             frame_count = 0
             
-            print(f"📖 Reading trajectory file: {xyz_file}")
-            print(f"📄 Total lines: {len(lines)}")
+            print(f"Reading trajectory file: {xyz_file}")
+            print(f"Total lines: {len(lines)}")
             
             while i < len(lines):
                 try:
@@ -78,17 +78,17 @@ class TrajectoryProcessor:
                     i += n_atoms + 2
                     
                 except (ValueError, IndexError) as e:
-                    print(f"⚠️ Error reading frame {frame_count} at line {i}: {e}")
+                    print(f"Error reading frame {frame_count} at line {i}: {e}")
                     break
             
-            print(f"✅ Successfully read {len(frames)} trajectory frames")
-            print(f"⏱️ Time range: 0 - {frames[-1]['time_fs']:.1f} fs ({frames[-1]['time_ps']:.3f} ps)")
-            print(f"🧪 Atoms per frame: {frames[0]['n_atoms'] if frames else 0}")
+            print(f"Successfully read {len(frames)} trajectory frames")
+            print(f"Time range: 0 - {frames[-1]['time_fs']:.1f} fs ({frames[-1]['time_ps']:.3f} ps)")
+            print(f"Atoms per frame: {frames[0]['n_atoms'] if frames else 0}")
             
             return frames
             
         except Exception as e:
-            print(f"❌ Error reading trajectory file: {e}")
+            print(f"Error reading trajectory file: {e}")
             raise
     
     def get_trajectory_statistics(self, frames: List[Dict]) -> Dict:
@@ -171,7 +171,7 @@ class TrajectoryProcessor:
             excitation_times.append(current_time)
             current_time += excitation_interval_fs
         
-        print(f"🎯 Looking for {len(excitation_times)} excitation time points")
+        print(f"Looking for {len(excitation_times)} excitation time points")
         
         # Find corresponding frames
         for exc_time in excitation_times:
@@ -188,7 +188,7 @@ class TrajectoryProcessor:
             if closest_frame and min_diff < 0.5:  # Within 0.5 fs tolerance
                 excitation_frames.append(closest_frame)
         
-        print(f"✅ Found {len(excitation_frames)} frames for excitation times")
+        print(f"Found {len(excitation_frames)} frames for excitation times")
         
         return excitation_frames
     
@@ -257,6 +257,6 @@ class TrajectoryProcessor:
         step = len(frames) // max_frames
         optimized_frames = frames[::step]
         
-        print(f"🎬 Optimized trajectory: {len(frames)} → {len(optimized_frames)} frames")
+        print(f"Optimized trajectory: {len(frames)} → {len(optimized_frames)} frames")
         
         return optimized_frames

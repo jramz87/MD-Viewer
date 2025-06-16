@@ -93,6 +93,13 @@ let selectedFiles = [];
 function handleFiles(files) {
     console.log('handleFiles called with', files.length, 'files');
     
+    // Store molecule type BEFORE the page content changes
+    const moleculeTypeSelect = document.getElementById('molecule-type');
+    if (moleculeTypeSelect) {
+        window.selectedMoleculeType = moleculeTypeSelect.value;
+        console.log('Stored molecule type:', window.selectedMoleculeType);
+    }
+
     if (!files.length) {
         console.log('No files provided');
         return;
@@ -482,6 +489,12 @@ function uploadFiles() {
             showUploadError('No valid files to upload');
             return;
         }
+
+        // Get molecule type from dropdown
+        const moleculeTypeSelect = document.getElementById('molecule-type');
+        const moleculeType = window.selectedMoleculeType || 'generic';
+        formData.append('molecule_type', moleculeType);
+        console.log('Adding molecule type to upload:', moleculeType);
         
         // Set up fetch with timeout
         const controller = new AbortController();

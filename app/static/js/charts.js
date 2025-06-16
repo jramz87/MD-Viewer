@@ -1,4 +1,4 @@
-// app/static/js/charts.js - Complete Chart visualization for molecular data
+// Complete Chart visualization for molecular data
 
 class MolecularCharts {
     constructor() {
